@@ -57,7 +57,7 @@ const Contact: React.FC = () => {
             <div className="max-w-[1600px] mx-auto w-full px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-12 md:mb-16">
                     <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">Get In Touch</h2>
-                    <p className="text-sm sm:text-base text-gray-400 mt-2">Let's work together on your next project</p>
+                    <p className="text-sm sm:text-base text-gray-400 mt-2">Open to backend engineering opportunities and thoughtful technical collaborations.</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
@@ -66,7 +66,7 @@ const Contact: React.FC = () => {
                         <div>
                             <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 md:mb-6">Contact Information</h3>
                             <p className="text-sm sm:text-base text-gray-400 mb-6 md:mb-8">
-                                Feel free to reach out for collaborations, opportunities, or just a friendly chat about technology.
+                                Feel free to reach out about backend engineering opportunities, distributed systems, or applied AI research.
                             </p>
                         </div>
 
@@ -74,7 +74,7 @@ const Contact: React.FC = () => {
                             {/* Email */}
                             <a
                                 href="mailto:phucttm.dev@gmail.com"
-                                className="flex items-center gap-3 md:gap-4 p-3 md:p-4 bg-gray-900/50 rounded-lg border border-gray-800/50 hover:border-white/20 transition-colors group"
+                                className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl border border-gray-700 hover:border-white/50 transition-colors duration-300 group"
                             >
                                 <div className="w-10 h-10 md:w-12 md:h-12 bg-white/5 rounded-lg flex items-center justify-center group-hover:bg-white/10 transition-colors shrink-0">
                                     <Mail className="w-5 h-5 md:w-6 md:h-6 text-white" />
@@ -88,7 +88,7 @@ const Contact: React.FC = () => {
                             {/* Phone */}
                             <a
                                 href="tel:+84375331022"
-                                className="flex items-center gap-3 md:gap-4 p-3 md:p-4 bg-gray-900/50 rounded-lg border border-gray-800/50 hover:border-white/20 transition-colors group"
+                                className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl border border-gray-700 hover:border-white/50 transition-colors duration-300 group"
                             >
                                 <div className="w-10 h-10 md:w-12 md:h-12 bg-white/5 rounded-lg flex items-center justify-center group-hover:bg-white/10 transition-colors shrink-0">
                                     <Phone className="w-5 h-5 md:w-6 md:h-6 text-white" />
@@ -100,7 +100,7 @@ const Contact: React.FC = () => {
                             </a>
 
                             {/* Location */}
-                            <div className="flex items-center gap-3 md:gap-4 p-3 md:p-4 bg-gray-900/50 rounded-lg border border-gray-800/50">
+                            <div className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl border border-gray-700 hover:border-white/50 transition-colors duration-300">
                                 <div className="w-10 h-10 md:w-12 md:h-12 bg-white/5 rounded-lg flex items-center justify-center shrink-0">
                                     <MapPin className="w-5 h-5 md:w-6 md:h-6 text-white" />
                                 </div>
@@ -115,7 +115,7 @@ const Contact: React.FC = () => {
                                 href="https://github.com/miFu278"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-3 md:gap-4 p-3 md:p-4 bg-gray-900/50 rounded-lg border border-gray-800/50 hover:border-white/20 transition-colors group"
+                                className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl border border-gray-700 hover:border-white/50 transition-colors duration-300 group"
                             >
                                 <div className="w-10 h-10 md:w-12 md:h-12 bg-white/5 rounded-lg flex items-center justify-center group-hover:bg-white/10 transition-colors shrink-0">
                                     <Github className="w-5 h-5 md:w-6 md:h-6 text-white" />
@@ -129,7 +129,7 @@ const Contact: React.FC = () => {
                     </div>
 
                     {/* Right side - Contact Form */}
-                    <div className="bg-gray-900/50 rounded-xl p-6 md:p-8 border border-gray-800/50">
+                    <div className="rounded-xl p-6 md:p-8 border border-gray-700 hover:border-white/50 transition-colors duration-300">
                         <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 md:mb-6">Send a Message</h3>
 
                         <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
@@ -145,7 +145,7 @@ const Contact: React.FC = () => {
                                     value={formData.name}
                                     onChange={handleChange}
                                     required
-                                    className="w-full px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-white transition-colors"
+                                    className="w-full px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-white/50 transition-colors duration-300"
                                     placeholder="Your name"
                                 />
                             </div>
@@ -162,7 +162,7 @@ const Contact: React.FC = () => {
                                     value={formData.email}
                                     onChange={handleChange}
                                     required
-                                    className="w-full px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-white transition-colors"
+                                    className="w-full px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-white/50 transition-colors duration-300"
                                     placeholder="your.email@example.com"
                                 />
                             </div>
@@ -179,7 +179,7 @@ const Contact: React.FC = () => {
                                     onChange={handleChange}
                                     required
                                     rows={5}
-                                    className="w-full px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-white transition-colors resize-none md:rows-6"
+                                    className="w-full px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-white/50 transition-colors duration-300 resize-none md:rows-6"
                                     placeholder="Your message..."
                                 />
                             </div>

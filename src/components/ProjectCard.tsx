@@ -9,7 +9,7 @@ interface ProjectCardProps {
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, isActive }) => {
-  const { title, category, description, links, tech, year } = project;
+  const { title, category, description, links, tech } = project;
 
   return (
     <div
@@ -18,7 +18,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, isActive }) => {
       }`}
     >
       <h3 className="text-4xl font-bold text-white mb-2">{title}</h3>
-      <p className="text-gray-400 text-lg mb-4">{category} — {year}</p>
+      <p className="text-gray-400 text-lg mb-4">{category}</p>
       <p className="text-gray-300 leading-relaxed mb-6">{description}</p>
 
       {/* Links */}

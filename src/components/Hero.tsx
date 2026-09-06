@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChevronDown, Download } from 'lucide-react';
 import avatarImg from '../assets/mp.jpg';
-import resumePdf from '../assets/phucttm-cv.pdf';
+import resumePdf from '../assets/ttmp_cv.pdf';
 
 const Hero: React.FC = () => {
   return (
@@ -27,10 +27,10 @@ const Hero: React.FC = () => {
             Than Trinh Minh Phuc
           </h1>
           <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mt-2 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-            Software Engineering Intern
+            Backend Software Engineer
           </p>
           <p className="mt-4 md:mt-6 max-w-2xl text-sm sm:text-base text-gray-400 animate-fade-in-up px-4 md:px-0" style={{ animationDelay: '400ms' }}>
-            A passionate developer crafting elegant solutions and building immersive digital experiences.
+            Focused on APIs, distributed systems, and data-intensive applications with Go and .NET.
           </p>
 
           <div className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-3 md:gap-4 w-full sm:w-auto px-4 md:px-0 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
@@ -48,7 +48,7 @@ const Hero: React.FC = () => {
             </a>
             <a
               href={resumePdf}
-              download="phucthan_resume.pdf"
+              download="ThanTrinhMinhPhuc_BackendSoftwareEngineer_Resume.pdf"
               className="px-6 md:px-8 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-black transition duration-300 transform hover:scale-105 flex items-center justify-center gap-2 text-sm md:text-base"
             >
               <Download size={18} className="md:w-5 md:h-5" />

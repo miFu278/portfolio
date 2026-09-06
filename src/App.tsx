@@ -1,10 +1,12 @@
 import './App.css'
 import About from './components/About'
 import Contact from './components/Contact'
+import Experience from './components/Experience'
 import Header from './components/Header'
 import Hero from './components/Hero'
 import PageLoader from './components/PageLoader'
 import ProjectsAndTech from './components/ProjectsAndTech'
+import Research from './components/Research'
 import ScrollProgress from './components/ScrollProgress'
 import Starfield from './components/StarField'
 
@@ -24,7 +26,9 @@ function App() {
           <Header />
           <Hero />
           <About />
+          <Experience />
           <ProjectsAndTech />
+          <Research />
           <Contact />
         </div>
       </div>

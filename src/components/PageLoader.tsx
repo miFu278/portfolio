@@ -36,7 +36,7 @@ const PageLoader: React.FC = () => {
                         miFu
                     </h1>
                     <p className="text-gray-400 text-sm tracking-wider">
-                        Backend Developer
+                        Backend Software Engineer
                     </p>
                 </div>
 

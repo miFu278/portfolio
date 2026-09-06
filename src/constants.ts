@@ -1,34 +1,23 @@
 import type { Project, Technology } from './types/type';
 import {
-  SiReact,
   SiDotnet,
   SiPostgresql,
   SiMongodb,
   SiRedis,
   SiRabbitmq,
   SiDocker,
-  SiKubernetes,
-  SiSwagger,
-  SiGo
+  SiGo,
+  SiSupabase
 } from 'react-icons/si';
-import { TbBrandCSharp, TbBrandGolang } from 'react-icons/tb';
-import { VscLayersActive, VscGitMerge } from 'react-icons/vsc';
-import { MdSecurity } from 'react-icons/md';
+import { VscLayersActive } from 'react-icons/vsc';
 
 export const TECHNOLOGIES: { [key: string]: Technology } = {
-  // Frontend
-  'React': { name: 'React', icon: SiReact },
-
   // Backend
-  'C#': { name: 'C#', icon: TbBrandCSharp },
   '.NET': { name: '.NET', icon: SiDotnet },
-  'ASP.NET Core': { name: 'ASP.NET Core', icon: SiDotnet },
   'Go': { name: 'Go', icon: SiGo },
-  'Gin': { name: 'Gin', icon: TbBrandGolang },
 
   // Architecture
   'Clean Architecture': { name: 'Clean Architecture', icon: VscLayersActive },
-  'CQRS': { name: 'CQRS', icon: VscGitMerge },
 
   // Databases
   'PostgreSQL': { name: 'PostgreSQL', icon: SiPostgresql },
@@ -37,59 +26,30 @@ export const TECHNOLOGIES: { [key: string]: Technology } = {
 
   // Message Queue
   'RabbitMQ': { name: 'RabbitMQ', icon: SiRabbitmq },
+  'pgvector': { name: 'pgvector', icon: SiPostgresql },
+  'Supabase': { name: 'Supabase', icon: SiSupabase },
 
-  // DevOps
+  // Infrastructure
   'Docker': { name: 'Docker', icon: SiDocker },
-  'Kubernetes': { name: 'Kubernetes', icon: SiKubernetes },
-
-  // Tools
-  'Swagger': { name: 'Swagger', icon: SiSwagger },
-  'JWT': { name: 'JWT', icon: MdSecurity },
 };
 
 export const PROJECTS: Project[] = [
   {
-    id: 'speak-up-api',
-    title: 'Speak Up API',
-    category: 'Backend Developer • Learning Go',
-    year: 2025,
-    image: 'https://picsum.photos/seed/speakup/800/450',
-    description: 'RESTful API backend for English learning application built with Go and Gin framework. Features JWT authentication with refresh tokens, multi-device session management, OAuth integration, email/phone verification, and comprehensive Swagger documentation.',
-    metrics: { commits: 150, contributors: 1 },
-    links: { github: 'https://github.com/miFu278/speak-up-api', demo: '#' },
-    tech: ['Go', 'Gin', 'PostgreSQL', 'Docker', 'JWT', 'Swagger'],
-  },
-  {
-    id: 'ecommerce-platform',
-    title: 'Scalable E-Commerce Platform',
-    category: 'Backend Developer • Microservices',
-    year: 2025,
+    id: 'distributed-ecommerce-platform',
+    title: 'Distributed E-Commerce Platform',
+    category: 'Backend Engineer • Distributed Systems',
     image: 'https://picsum.photos/seed/ecommerce/800/450',
-    description: 'Microservices E-Commerce Platform with .NET 9, Clean Architecture, CQRS, Event-Driven design using PostgreSQL, MongoDB, Redis, RabbitMQ, and Kubernetes deployment.',
-    metrics: { commits: 450, contributors: 1 },
-    links: { github: 'https://github.com/miFu278/ECommercePlatform', demo: '#' },
-    tech: ['ASP.NET Core', 'C#', 'Clean Architecture', 'CQRS', 'PostgreSQL', 'MongoDB', 'Redis', 'RabbitMQ', 'Docker', 'Kubernetes', 'Swagger', 'JWT'],
+    description: 'Designed and built a six-service .NET e-commerce platform for user, product, cart, order, payment, and notification domains. Implemented event-driven communication with RabbitMQ, Redis caching, an Ocelot API Gateway, and PostgreSQL and MongoDB persistence. Orchestrated the distributed application with .NET Aspire and Docker.',
+    links: { github: 'https://github.com/miFu278/ECommercePlatform' },
+    tech: ['.NET', 'Clean Architecture', 'RabbitMQ', 'Redis', 'PostgreSQL', 'MongoDB', 'Docker'],
   },
   {
-    id: 'online-compiler',
-    title: 'Online Code Compiler',
-    category: 'Fullstack Developer',
-    year: 2025,
-    image: 'https://picsum.photos/seed/compiler/800/450',
-    description: 'Full-stack web application for writing, compiling, and executing code online across multiple programming languages with syntax-highlighted editor, real-time output, and secure Docker-based execution.',
-    metrics: { commits: 320, contributors: 1 },
-    links: { github: 'https://github.com/miFu278/online-code-compiler', demo: '#' },
-    tech: ['ASP.NET Core', 'C#', 'React', 'PostgreSQL', 'Docker', 'JWT', 'Swagger'],
-  },
-  {
-    id: 'leaderboard',
-    title: 'Real Time Leaderboard',
-    category: 'Backend Developer',
-    year: 2025,
-    image: 'https://picsum.photos/seed/leaderboard/800/450',
-    description: 'High-performance leaderboard service with ASP.NET Core, PostgreSQL, Redis implementing Clean Architecture and CQRS for real-time score tracking and live rank updates.',
-    metrics: { commits: 280, contributors: 1 },
-    links: { github: 'https://github.com/miFu278/real-time-leaderboard-api', demo: '#' },
-    tech: ['ASP.NET Core', 'C#', 'Clean Architecture', 'CQRS', 'PostgreSQL', 'Redis', 'Docker', 'Swagger', 'JWT'],
+    id: 'rag-learning-assistant',
+    title: 'RAG Learning Assistant',
+    category: 'Backend Engineer • Applied AI',
+    image: 'https://picsum.photos/seed/rag-learning/800/450',
+    description: 'Led backend development for a four-person RAG learning platform. Built the document ingestion, chunking, embedding, and vector retrieval pipeline with PostgreSQL and pgvector, plus multi-turn, document-grounded chat workflows. Developed supporting logic for authentication, course management, usage credits, and background processing.',
+    links: { github: 'https://github.com/miFu278/PRN222_ASM' },
+    tech: ['.NET', 'PostgreSQL', 'pgvector', 'Supabase'],
   },
 ];

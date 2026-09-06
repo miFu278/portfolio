@@ -92,8 +92,8 @@ const ProjectsAndTech: React.FC = () => {
             className="opacity-0 transform translate-y-8 transition-all duration-1000 ease-out py-16 md:py-24 scroll-mt-24"
         >
             <div className="text-center mb-12 md:mb-16 px-4">
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">My Projects & Tech Stack</h2>
-                <p className="text-sm sm:text-base text-gray-400 mt-2">Scroll through to see my work and tools.</p>
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">Selected Projects & Tech Stack</h2>
+                <p className="text-sm sm:text-base text-gray-400 mt-2">A selection of backend systems and applied AI work.</p>
             </div>
 
             <div className="max-w-[1600px] mx-auto w-full px-4 sm:px-6 lg:px-8">
@@ -105,7 +105,7 @@ const ProjectsAndTech: React.FC = () => {
                         return (
                             <div key={project.id} className="space-y-6">
                                 {/* Project Card */}
-                                <div className="w-full bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 sm:p-8 border border-gray-800/50">
+                                <div className="w-full rounded-xl p-6 sm:p-8 border border-gray-700 hover:border-white/50 transition-colors duration-300">
                                     <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3">{project.title}</h3>
                                     <p className="text-gray-400 text-xs sm:text-sm uppercase tracking-wider mb-4">{project.category}</p>
 
@@ -115,17 +115,7 @@ const ProjectsAndTech: React.FC = () => {
                                             <p className="text-gray-300 leading-relaxed text-sm sm:text-base">{project.description}</p>
                                         </div>
 
-                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-gray-800 gap-3">
-                                            <div className="flex gap-8">
-                                                <div>
-                                                    <h4 className="text-gray-500 text-xs uppercase tracking-wider mb-1">TYPE</h4>
-                                                    <p className="text-white text-sm">{project.category}</p>
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-gray-500 text-xs uppercase tracking-wider mb-1">YEAR</h4>
-                                                    <p className="text-white text-sm">{project.year}</p>
-                                                </div>
-                                            </div>
+                                        <div className="flex justify-end pt-4 border-t border-gray-800">
                                             <a
                                                 href={project.links.github}
                                                 target="_blank"
@@ -139,7 +129,7 @@ const ProjectsAndTech: React.FC = () => {
                                 </div>
 
                                 {/* Tech Stack for this project */}
-                                <div className="bg-black/50 backdrop-blur-sm rounded-xl p-5 border border-white/10">
+                                <div className="rounded-xl p-5 border border-gray-700 hover:border-white/50 transition-colors duration-300">
                                     <h4 className="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wider">
                                         Technologies Used
                                     </h4>
@@ -176,7 +166,7 @@ const ProjectsAndTech: React.FC = () => {
                                 }}
                                 className="min-h-[80vh] flex items-center"
                             >
-                                <div className="w-full bg-gray-900/50 backdrop-blur-sm rounded-xl p-12 border border-gray-800/50 hover:border-white/20 hover:shadow-2xl hover:shadow-white/5 hover:-translate-y-2 transition-all duration-500 group">
+                                <div className="w-full rounded-xl p-12 border border-gray-700 hover:border-white/50 transition-colors duration-300">
                                     <h3 className="text-5xl font-bold text-white mb-6">{project.title}</h3>
                                     <p className="text-gray-400 text-base uppercase tracking-wider mb-10">{project.category}</p>
 
@@ -186,17 +176,7 @@ const ProjectsAndTech: React.FC = () => {
                                             <p className="text-gray-300 leading-relaxed text-lg">{project.description}</p>
                                         </div>
 
-                                        <div className="flex items-center justify-between pt-6 border-t border-gray-800">
-                                            <div className="flex gap-16">
-                                                <div>
-                                                    <h4 className="text-gray-500 text-sm uppercase tracking-wider mb-2">TYPE</h4>
-                                                    <p className="text-white text-base">{project.category}</p>
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-gray-500 text-sm uppercase tracking-wider mb-2">YEAR</h4>
-                                                    <p className="text-white text-base">{project.year}</p>
-                                                </div>
-                                            </div>
+                                        <div className="flex justify-end pt-6 border-t border-gray-800">
                                             <a
                                                 href={project.links.github}
                                                 target="_blank"
@@ -215,13 +195,8 @@ const ProjectsAndTech: React.FC = () => {
                     {/* Right side - Sticky Tech Stack (Desktop only) */}
                     <aside className="w-[550px] shrink-0">
                         <div className="sticky top-52 max-h-[calc(100vh-120px)]">
-                            <div className="bg-black/50 backdrop-blur-sm rounded-xl p-8 border border-white/10">
-                                <h3 className="text-3xl font-bold text-white mb-10">
-                                    Tech Stacks
-                                    <span className="ml-3 text-base text-gray-500">
-                                        ({activeTechIds.size}/{allTechs.length})
-                                    </span>
-                                </h3>
+                            <div className="rounded-xl p-8 border border-gray-700 hover:border-white/50 transition-colors duration-300">
+                                <h3 className="text-3xl font-bold text-white mb-10">Tech Stacks</h3>
 
                                 <div className="flex flex-wrap gap-4 max-h-[calc(100vh-280px)] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
                                     {allTechs.map((tech, index) => {

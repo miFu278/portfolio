@@ -9,7 +9,6 @@ export interface Project {
   id: string;
   title: string;
   category: string;
-  year: number;
   image: string;
   description: string;
   metrics?: { commits: number; contributors: number };

@@ -17,23 +17,22 @@ const About: React.FC = () => {
         <div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 text-white">About Me</h2>
           <p className="text-base sm:text-lg md:text-xl text-gray-300 leading-relaxed max-w-3xl mx-auto px-4 md:px-0">
-            I am a driven software engineering intern with a passion for turning complex problems into
-            beautiful, intuitive applications. My journey into code began with a fascination for how things
-            work, and it has evolved into a continuous quest for knowledge and improvement. I thrive in
-            collaborative environments and enjoy leveraging technology to create impactful user experiences.
+            I am a Software Engineering student at FPT University and a backend engineer focused on reliable
+            services, thoughtful data models, and clear system boundaries. I enjoy turning complex requirements
+            into maintainable APIs and collaborating closely with teams to deliver practical software.
           </p>
         </div>
 
         <div>
-          <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 md:mb-8 text-white">Currently Learning</h3>
+          <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 md:mb-8 text-white">What I Focus On</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             <CurrentlyLearningItem
-              title="Advanced Go"
-              description="Deepening my understanding of concurrency patterns and systems programming."
+              title="Backend Engineering"
+              description="Designing REST APIs, authentication flows, data models, and service boundaries with Go, .NET, and PostgreSQL."
             />
             <CurrentlyLearningItem
-              title="WebAssembly"
-              description="Exploring high-performance web applications by compiling native code to run in the browser."
+              title="Applied AI Research"
+              description="Investigating JEPA-based world models and reproducible evaluation methods for out-of-distribution detection."
             />
           </div>
         </div>
