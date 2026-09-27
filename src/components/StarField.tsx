@@ -66,7 +66,8 @@ const Starfield: React.FC = () => {
       let len = 0;
       while (len < 0.01) {
         x = Math.random() * 2 - 1;
-        y = Math.random() * 2 - 1;
+        // Bias latitude toward the camera's viewable pitch zone to ensure high on-screen density
+        y = (Math.random() * 2 - 1) * 0.65;
         z = Math.random() * 2 - 1;
         len = Math.sqrt(x * x + y * y + z * z);
       }
@@ -74,22 +75,25 @@ const Starfield: React.FC = () => {
     };
 
     const buildStars = () => {
-      const count = Math.min(2400, Math.floor((width * height) / 750));
-      const R = Math.max(width, height) * 0.55;
+      // Much higher star count for a rich, dense cosmic starfield across the screen
+      const count = Math.min(5200, Math.floor((width * height) / 260));
+      const R = Math.max(width, height) * 0.65;
       stars = [];
       for (let i = 0; i < count; i++) {
         const d = randUnit();
-        const depth = Math.pow(Math.random(), 1.3); // bias toward nearer (larger) stars
-        const r = R * (0.35 + 0.65 * depth);
+        const depth = Math.pow(Math.random(), 1.2);
+        // Minimum distance buffer to prevent stars from getting too close and ballooning in size
+        const r = R * (0.55 + 0.45 * depth);
         stars.push({
           x: d.x * r,
           y: d.y * r,
           z: d.z * r,
           depth,
-          size: 1.1 + Math.pow(Math.random(), 2.5) * 3.6,
-          brightness: 0.4 + 0.6 * (1 - depth),
+          // Varied star magnitude: mostly crisp pinpoints with a selection of glowing anchor stars
+          size: 0.8 + Math.pow(Math.random(), 2.8) * 2.5,
+          brightness: 0.4 + 0.6 * (1 - depth * 0.4),
           twinklePhase: Math.random() * Math.PI * 2,
-          twinkleSpeed: 0.25 + Math.random() * 1.6,
+          twinkleSpeed: 0.3 + Math.random() * 2.2,
           tint: Math.random(),
         });
       }
@@ -192,14 +196,14 @@ const Starfield: React.FC = () => {
         const p = project(s, yaw, pitch);
         if (p.z > -0.1) continue; // behind camera
         const dist = -p.z;
-        const scale = f / dist;
+        const scale = f / Math.max(180, dist);
         let sx = cx + p.x * scale;
         let syy = cyy + p.y * scale;
-        if (sx < -24 || sx > width + 24 || syy < -24 || syy > height + 24) continue;
+        if (sx < -20 || sx > width + 20 || syy < -20 || syy > height + 20) continue;
 
-        let sz = Math.max(0.3, s.size * scale * 0.62);
+        let sz = Math.min(2.8, Math.max(0.5, s.size * scale * 0.28));
         const tw = 0.5 + 0.5 * Math.sin(t * s.twinkleSpeed + s.twinklePhase);
-        let alpha = Math.min(1, s.brightness * (0.55 + 0.45 * tw) * (1 + surge * 0.7));
+        let alpha = Math.min(1, s.brightness * (0.5 + 0.5 * tw) * (1 + surge * 0.7));
 
         // gravity well: bend nearby stars toward the cursor
         let gd2 = Infinity;
@@ -213,22 +217,33 @@ const Starfield: React.FC = () => {
             sx -= gdx * falloff * 0.32;
             syy -= gdy * falloff * 0.32;
             alpha = Math.min(1, alpha * (1 + falloff * 0.9));
-            sz *= 1 + falloff * 0.25;
+            sz = Math.min(2.8, sz * (1 + falloff * 0.2));
           }
         }
 
-        const tint = s.tint < 0.12 ? '200, 216, 255' : '255, 255, 255';
+        const tint = s.tint < 0.15 ? '200, 225, 255' : s.tint < 0.28 ? '255, 245, 230' : '255, 255, 255';
 
-        if (sz > 2.2) {
-          ctx.fillStyle = `rgba(${tint}, ${(alpha * 0.18).toFixed(3)})`;
+        // soft subtle aura for prominent stars (never a harsh flat ring)
+        if (sz > 1.3) {
+          ctx.fillStyle = `rgba(${tint}, ${(alpha * 0.12).toFixed(3)})`;
           ctx.beginPath();
-          ctx.arc(sx, syy, sz * 2.6, 0, Math.PI * 2);
+          ctx.arc(sx, syy, sz * 2.0, 0, Math.PI * 2);
           ctx.fill();
         }
+
+        // star core
         ctx.fillStyle = `rgba(${tint}, ${alpha.toFixed(3)})`;
         ctx.beginPath();
         ctx.arc(sx, syy, sz, 0, Math.PI * 2);
         ctx.fill();
+
+        // brilliant pinpoint center for brightest stars
+        if (sz > 1.5) {
+          ctx.fillStyle = `rgba(255, 255, 255, ${(alpha * 0.85).toFixed(3)})`;
+          ctx.beginPath();
+          ctx.arc(sx, syy, sz * 0.4, 0, Math.PI * 2);
+          ctx.fill();
+        }
 
         // keep the nearest few for constellation lines
         if (gd2 < LINE_R2) {
