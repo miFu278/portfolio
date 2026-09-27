@@ -24,6 +24,37 @@ html, body, #root {
   opacity: 0;
 }
 
+/* Solar avatar: corona pulse + orbiting rings */
+@keyframes avatarCorona {
+  0%, 100% { opacity: 0.55; transform: scale(0.96); }
+  50% { opacity: 0.95; transform: scale(1.06); }
+}
+
+@keyframes avatarSpinClockwise {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.avatar-corona {
+  animation: avatarCorona 6s ease-in-out infinite;
+}
+
+.avatar-orbit-slow {
+  animation: avatarSpinClockwise 12s linear infinite;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.avatar-orbit-fast {
+  animation: avatarSpinClockwise 20s linear infinite;
+  transform-origin: center;
+  will-change: transform;
+}
+
 /* Custom scrollbar for webkit browsers */
 .scrollbar-thin::-webkit-scrollbar {
   width: 6px;

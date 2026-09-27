@@ -12,12 +12,46 @@ const Hero: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-10 items-center gap-8 md:gap-12 w-full max-w-6xl mx-auto md:-mt-40 -mt-20">
         {/* Avatar - Shows first on mobile, last on desktop */}
         <div className="order-1 md:order-2 md:col-span-4 flex justify-center md:justify-end animate-fade-in-up" style={{ animationDelay: '800ms' }}>
-          <div className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-white/20 shadow-lg hover:scale-105 transition-transform duration-300">
-            <img
-              src={avatarImg}
-              alt="Than Trinh Minh Phuc"
-              className="w-full h-full object-cover"
+          <div className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 transition-transform duration-300 hover:scale-105">
+            {/* Solar corona */}
+            <div
+              className="avatar-corona pointer-events-none absolute -inset-10 rounded-full"
+              style={{
+                background:
+                  'radial-gradient(circle, rgba(255,246,232,0.35) 0%, rgba(190,208,255,0.13) 38%, rgba(0,0,0,0) 70%)',
+                filter: 'blur(8px)',
+              }}
             />
+
+            {/* Outer orbit — comet arc going round and round */}
+            <div className="avatar-orbit-slow pointer-events-none absolute -inset-7">
+              <div
+                className="absolute inset-0 rounded-full"
+                style={{
+                  background:
+                    'conic-gradient(from 0deg, rgba(255,255,255,0) 0deg, rgba(255,255,255,0) 235deg, rgba(190,208,255,0.45) 315deg, rgba(255,255,255,0.95) 356deg, rgba(255,255,255,0) 360deg)',
+                  WebkitMask:
+                    'radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px))',
+                  mask: 'radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px))',
+                }}
+              />
+              <span className="absolute left-1/2 top-0 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_12px_3px_rgba(255,255,255,0.85)]" />
+            </div>
+
+            {/* Inner orbit */}
+            <div className="avatar-orbit-fast pointer-events-none absolute -inset-3">
+              <div className="absolute inset-0 rounded-full border border-dotted border-white/20" />
+              <span className="absolute bottom-0 left-1/2 h-1.5 w-1.5 -translate-x-1/2 translate-y-1/2 rounded-full bg-white/90 shadow-[0_0_8px_2px_rgba(255,255,255,0.6)]" />
+            </div>
+
+            {/* The star */}
+            <div className="relative h-full w-full overflow-hidden rounded-full border-4 border-white/20 shadow-lg">
+              <img
+                src={avatarImg}
+                alt="Than Trinh Minh Phuc"
+                className="h-full w-full object-cover"
+              />
+            </div>
           </div>
         </div>
 
@@ -27,7 +61,7 @@ const Hero: React.FC = () => {
             Than Trinh Minh Phuc
           </h1>
           <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mt-2 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-            Backend Software Engineer
+            Software Engineer
           </p>
           <p className="mt-4 md:mt-6 max-w-2xl text-sm sm:text-base text-gray-400 animate-fade-in-up px-4 md:px-0" style={{ animationDelay: '400ms' }}>
             Focused on APIs, distributed systems, and data-intensive applications with Go and .NET.
