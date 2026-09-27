@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://miFu278.github.io/portfolio/sitemap.xml
