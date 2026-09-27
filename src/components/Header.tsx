@@ -34,9 +34,9 @@ const Header: React.FC = () => {
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-black/30">
+    <header className="fixed top-0 left-0 right-0 z-50">
       <div className="container mx-auto px-6 md:px-12 lg:px-24">
-        <div className="mt-4 py-3 px-6 rounded-full border border-white/10 shadow-sm">
+        <div className="mt-4 py-3 px-6 rounded-full border border-white/10 bg-black/40 backdrop-blur-md shadow-sm">
           <nav className="flex justify-between items-center font-mono">
             {/* Left Side — Logo */}
             <a
