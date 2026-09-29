@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Mail } from 'lucide-react';
+import { useLoading } from '../context/LoadingContext';
 
 const NAV_LINKS = [
   { href: '#home', label: 'Home' },
@@ -11,6 +12,7 @@ const NAV_LINKS = [
 ];
 
 const Header: React.FC = () => {
+  const { isLoaded } = useLoading();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
 
@@ -34,7 +36,11 @@ const Header: React.FC = () => {
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50">
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        isLoaded ? 'translate-y-0 opacity-100' : '-translate-y-8 opacity-0 pointer-events-none'
+      }`}
+    >
       <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mt-4 py-2.5 md:py-3 px-4 sm:px-6 rounded-full border border-white/10 bg-black/50 backdrop-blur-md shadow-sm">
           <nav className="flex justify-between items-center font-mono gap-3">

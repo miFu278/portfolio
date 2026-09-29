@@ -9,10 +9,11 @@ import ProjectsAndTech from './components/ProjectsAndTech'
 import Research from './components/Research'
 import ScrollProgress from './components/ScrollProgress'
 import Starfield from './components/StarField'
+import { LoadingProvider } from './context/LoadingContext'
 
 function App() {
   return (
-    <>
+    <LoadingProvider>
       <PageLoader />
       <ScrollProgress />
       <div className="relative min-h-screen bg-black text-gray-100">
@@ -32,7 +33,7 @@ function App() {
           <Contact />
         </div>
       </div>
-    </>
+    </LoadingProvider>
   )
 }
 

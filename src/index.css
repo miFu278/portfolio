@@ -20,7 +20,7 @@ html, body, #root {
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.8s ease-out forwards;
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   opacity: 0;
 }
 
@@ -53,6 +53,47 @@ html, body, #root {
   animation: avatarSpinClockwise 20s linear infinite;
   transform-origin: center;
   will-change: transform;
+}
+
+/* Card hover glow & scroll transitions */
+.card-hover-glow {
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-hover-glow:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+  background-color: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 10px 30px -10px rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Text Shimmer for highlighted headings */
+@keyframes textShimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.8) 0%,
+    rgba(255, 255, 255, 1) 25%,
+    rgba(156, 163, 175, 0.9) 50%,
+    rgba(255, 255, 255, 1) 75%,
+    rgba(255, 255, 255, 0.8) 100%
+  );
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: textShimmer 6s ease infinite;
 }
 
 /* Custom scrollbar for webkit browsers */
@@ -90,8 +131,17 @@ html {
     -webkit-tap-highlight-color: transparent;
   }
   
-  /* Prevent text size adjustment on orientation change */
   html {
     -webkit-text-size-adjust: 100%;
+  }
+}
+
+/* Respect user preferences for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
