@@ -44,7 +44,7 @@ const Research: React.FC = () => {
                   />
                 </div>
                 <span className="shrink-0 text-xs sm:text-sm font-mono text-gray-300 border border-gray-700 bg-white/5 rounded-full px-3.5 py-1.5 self-start">
-                  Under Review
+                  Accepted
                 </span>
               </div>
 
