@@ -74,7 +74,7 @@ const Hero: React.FC = () => {
 
           <div className="mt-2 text-lg sm:text-xl md:text-2xl text-gray-300 font-mono flex items-center gap-2">
             <span className="text-gray-500 font-bold">&gt;</span>
-            <TypewriterText text="Software Engineer" speed={45} delay={300} />
+            <TypewriterText text="Software Engineering" speed={45} delay={300} />
           </div>
 
           <ScrollReveal animation="slide-right" delay={450}>
