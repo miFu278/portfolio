@@ -30,11 +30,11 @@ git push -u origin main
 
 ### 4. Deploy to GitHub Pages
 ```bash
-npm run deploy
+pnpm deploy
 ```
 
 This will:
-- Build your project (`npm run build`)
+- Build your project (`pnpm build`)
 - Create a `gh-pages` branch
 - Push the `dist` folder to that branch
 - Deploy automatically
@@ -63,7 +63,7 @@ git commit -m "Update portfolio"
 git push
 
 # 2. Deploy
-npm run deploy
+pnpm deploy
 ```
 
 ## Troubleshooting
@@ -81,8 +81,8 @@ npm run deploy
 ```bash
 # Clear cache and try again
 rm -rf dist
-npm run build
-npm run deploy
+pnpm build
+pnpm deploy
 ```
 
 ### Want custom domain?
@@ -135,7 +135,7 @@ Name: www
 Value: miFu278.github.io
 ```
 
-5. Deploy: `npm run deploy`
+5. Deploy: `pnpm deploy`
 
 ## Notes
 

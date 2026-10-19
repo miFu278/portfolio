@@ -54,16 +54,16 @@ const PageLoader: React.FC = () => {
               style={{ width: `${Math.min(100, progress)}%` }}
             />
           </div>
-          <p className="text-gray-500 text-xs mt-2 font-mono">
+          <p className="text-gray-400 text-xs mt-2 font-mono">
             {Math.round(Math.min(100, progress))}%
           </p>
         </div>
 
         {/* Subtle loading dots */}
         <div className="flex justify-center gap-2">
-          <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-          <div className="w-1.5 h-1.5 bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+          <div className="w-1.5 h-1.5 bg-white rounded-full animate-loader-dot" style={{ animationDelay: '0ms' }} />
+          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-loader-dot" style={{ animationDelay: '150ms' }} />
+          <div className="w-1.5 h-1.5 bg-gray-600 rounded-full animate-loader-dot" style={{ animationDelay: '300ms' }} />
         </div>
       </div>
     </div>

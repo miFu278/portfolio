@@ -14,7 +14,7 @@ export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(
   const {
     threshold = [0, 0.1],
     rootMargin = '0px 0px -30px 0px',
-    once = false,
+    once = true,
     enabled = true,
   } = options;
   const { isLoaded } = useLoading();
@@ -30,7 +30,8 @@ export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(
     const element = ref.current;
     if (!element) return;
 
-    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+    // Content stays visible for reduced-motion users and browsers without IntersectionObserver
+    if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setIsVisible(true);
       return;
     }

@@ -24,6 +24,41 @@ html, body, #root {
   opacity: 0;
 }
 
+/* Scroll reveal: content is visible by default; this class only plays the entrance,
+   so text stays findable for crawlers, print, and in-page search. */
+@keyframes revealIn {
+  from {
+    opacity: 0;
+    transform: var(--reveal-from, none);
+    filter: var(--reveal-filter, blur(0));
+  }
+}
+
+.reveal-run {
+  animation: revealIn var(--reveal-duration, 750ms) var(--reveal-easing, cubic-bezier(0.16, 1, 0.3, 1))
+    var(--reveal-delay, 0ms) both;
+}
+
+/* Scroll cue: smooth deceleration, no bounce */
+@keyframes scrollCue {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+.animate-scroll-cue {
+  animation: scrollCue 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Loader dots: opacity/scale pulse instead of bounce */
+@keyframes loaderDot {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+.animate-loader-dot {
+  animation: loaderDot 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
 /* Solar avatar: corona pulse + orbiting rings */
 @keyframes avatarCorona {
   0%, 100% { opacity: 0.55; transform: scale(0.96); }
@@ -67,35 +102,6 @@ html, body, #root {
   transform: translateY(-2px);
 }
 
-/* Text Shimmer for highlighted headings */
-@keyframes textShimmer {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-.animate-shimmer {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.8) 0%,
-    rgba(255, 255, 255, 1) 25%,
-    rgba(156, 163, 175, 0.9) 50%,
-    rgba(255, 255, 255, 1) 75%,
-    rgba(255, 255, 255, 0.8) 100%
-  );
-  background-size: 200% auto;
-  color: transparent;
-  -webkit-background-clip: text;
-  background-clip: text;
-  animation: textShimmer 6s ease infinite;
-}
-
 /* Custom scrollbar for webkit browsers */
 .scrollbar-thin::-webkit-scrollbar {
   width: 6px;
@@ -112,6 +118,14 @@ html, body, #root {
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background: #4b5563;
+}
+
+/* Keyboard focus stays visible on every interactive control */
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 3px;
 }
 
 /* Smooth scrolling */

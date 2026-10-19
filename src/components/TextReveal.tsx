@@ -37,8 +37,8 @@ export const TextReveal: React.FC<TextRevealProps> = ({
   rootMargin = '0px 0px -30px 0px',
   splitBy = 'words',
   highlightWords = [],
-  highlightClassName = 'text-transparent bg-clip-text bg-gradient-to-r from-gray-100 to-gray-400',
-  once = false,
+  highlightClassName = 'text-white',
+  once = true,
 }) => {
   const { ref, isVisible } = useScrollReveal<HTMLElement>({
     threshold,
@@ -78,6 +78,17 @@ export const TextReveal: React.FC<TextRevealProps> = ({
   };
 
   const isMasked = animation === 'slide-up' || animation === 'slide-down';
+  const run = isVisible ? 'reveal-run' : '';
+
+  // Keyframe values live in CSS variables so words are never statically hidden
+  const revealStyle = (delayMs: number, durationMs = 700): React.CSSProperties =>
+    ({
+      '--reveal-from': getWordInitialTransform(),
+      '--reveal-filter': getWordInitialFilter(),
+      '--reveal-duration': `${durationMs}ms`,
+      '--reveal-easing': 'cubic-bezier(0.16, 1, 0.3, 1)',
+      '--reveal-delay': `${delayMs}ms`,
+    }) as React.CSSProperties;
 
   if (splitBy === 'none') {
     return (
@@ -86,16 +97,8 @@ export const TextReveal: React.FC<TextRevealProps> = ({
         className={`${className} ${isMasked ? 'overflow-hidden' : ''} inline-block`}
       >
         <span
-          className={`inline-block ${wordClassName}`}
-          style={{
-            transform: isVisible ? 'translate3d(0, 0, 0)' : getWordInitialTransform(),
-            opacity: isVisible ? 1 : 0,
-            filter: isVisible ? 'blur(0px)' : getWordInitialFilter(),
-            transition: isVisible
-              ? `transform 700ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, opacity 700ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, filter 700ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`
-              : 'none',
-            willChange: 'transform, opacity, filter',
-          }}
+          className={`inline-block ${wordClassName} ${run}`}
+          style={revealStyle(delay)}
         >
           {text}
         </span>
@@ -122,16 +125,8 @@ export const TextReveal: React.FC<TextRevealProps> = ({
               className={`inline-block ${isMasked ? 'overflow-hidden pt-[0.05em] -mt-[0.05em] pb-[0.1em] -mb-[0.1em]' : ''}`}
             >
               <span
-                className={`inline-block ${wordClassName}`}
-                style={{
-                  transform: isVisible ? 'translate3d(0, 0, 0)' : getWordInitialTransform(),
-                  opacity: isVisible ? 1 : 0,
-                  filter: isVisible ? 'blur(0px)' : getWordInitialFilter(),
-                  transition: isVisible
-                    ? `transform 600ms cubic-bezier(0.16, 1, 0.3, 1) ${charDelay}ms, opacity 600ms cubic-bezier(0.16, 1, 0.3, 1) ${charDelay}ms, filter 600ms cubic-bezier(0.16, 1, 0.3, 1) ${charDelay}ms`
-                    : 'none',
-                  willChange: 'transform, opacity, filter',
-                }}
+                className={`inline-block ${wordClassName} ${run}`}
+                style={revealStyle(charDelay, 600)}
               >
                 {char}
               </span>
@@ -163,16 +158,8 @@ export const TextReveal: React.FC<TextRevealProps> = ({
             className={`inline-block ${isMasked ? 'overflow-hidden pt-[0.05em] -mt-[0.05em] pb-[0.12em] -mb-[0.12em]' : ''}`}
           >
             <span
-              className={`inline-block ${appliedClass}`}
-              style={{
-                transform: isVisible ? 'translate3d(0, 0, 0)' : getWordInitialTransform(),
-                opacity: isVisible ? 1 : 0,
-                filter: isVisible ? 'blur(0px)' : getWordInitialFilter(),
-                transition: isVisible
-                  ? `transform 700ms cubic-bezier(0.16, 1, 0.3, 1) ${wordDelay}ms, opacity 700ms cubic-bezier(0.16, 1, 0.3, 1) ${wordDelay}ms, filter 700ms cubic-bezier(0.16, 1, 0.3, 1) ${wordDelay}ms`
-                  : 'none',
-                willChange: 'transform, opacity, filter',
-              }}
+              className={`inline-block ${appliedClass} ${run}`}
+              style={revealStyle(wordDelay)}
             >
               {word}
             </span>

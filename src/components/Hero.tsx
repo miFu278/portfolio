@@ -67,7 +67,7 @@ const Hero: React.FC = () => {
             as="h1"
             animation="slide-right"
             className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold pb-2 leading-tight"
-            wordClassName="bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400 font-bold"
+            wordClassName="text-white font-bold"
             delay={100}
             stagger={60}
           />
@@ -117,7 +117,7 @@ const Hero: React.FC = () => {
           <a
             href="#about"
             aria-label="Scroll to about section"
-            className="animate-bounce inline-block"
+            className="animate-scroll-cue inline-block"
           >
             <div className="flex flex-col items-center text-gray-400 hover:text-white transition-colors">
               <span className="text-xs md:text-sm font-mono">Scroll to explore</span>

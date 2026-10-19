@@ -20,6 +20,8 @@ export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   );
 };
 
+// Hook lives next to its provider; splitting the file would only cost an import for one line.
+// eslint-disable-next-line react-refresh/only-export-components
 export const useLoading = () => useContext(LoadingContext);
 
 export default LoadingContext;

@@ -155,8 +155,8 @@ placeholder `picsum.photos` URLs and `image` is never rendered — projects are 
 
 ## 9. Build and deploy
 
-`npm run build` = `tsc -b && vite build`; Vite `base` is `/portfolio/` for builds, `/` for
-dev. `npm run deploy` runs the build then `gh-pages -d dist`. Deploy specifics are in
+`pnpm build` = `tsc -b && vite build`; Vite `base` is `/portfolio/` for builds, `/` for
+dev. `pnpm deploy` runs the build then `gh-pages -d dist`. Deploy specifics are in
 `DEPLOY.md`, EmailJS setup in `EMAILJS_SETUP.md`.
 
 ## 10. Known gaps (verified in source, not fixed)

@@ -38,7 +38,7 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
   as: Component = 'div',
   threshold = [0, 0.1],
   rootMargin = '0px 0px -30px 0px',
-  once = false,
+  once = true,
   style = {},
   id,
   ...rest
@@ -93,27 +93,23 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
     }
   };
 
-  const easing = animation === 'pop'
-    ? 'cubic-bezier(0.34, 1.56, 0.64, 1)'
-    : 'cubic-bezier(0.16, 1, 0.3, 1)';
+  const easing = 'cubic-bezier(0.16, 1, 0.3, 1)';
 
-  const animStyle: React.CSSProperties = {
-    ...style,
-    opacity: isVisible ? 1 : 0,
-    transform: isVisible ? 'none' : getTransform(),
-    filter: isVisible ? 'blur(0px)' : getFilter(),
-    transition: isVisible
-      ? `opacity ${duration}ms ${easing} ${delay}ms, transform ${duration}ms ${easing} ${delay}ms, filter ${duration}ms ${easing} ${delay}ms`
-      : 'none',
-    willChange: 'opacity, transform, filter',
-  };
+  // Keyframe values live in CSS variables so the element itself is never hidden
+  const revealVars = {
+    '--reveal-from': getTransform(),
+    '--reveal-filter': getFilter(),
+    '--reveal-duration': `${duration}ms`,
+    '--reveal-easing': easing,
+    '--reveal-delay': `${delay}ms`,
+  } as React.CSSProperties;
 
   return (
     <Component
       ref={ref}
       id={id}
-      className={className}
-      style={animStyle}
+      className={`${className} ${isVisible ? 'reveal-run' : ''}`}
+      style={{ ...style, ...revealVars }}
       {...rest}
     >
       {children}

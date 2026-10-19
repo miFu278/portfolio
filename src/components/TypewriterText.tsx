@@ -30,10 +30,9 @@ export const TypewriterText: React.FC<TypewriterTextProps> = ({
     }
 
     let currentIdx = 0;
-    let timeoutId: number;
     let intervalId: number;
 
-    timeoutId = window.setTimeout(() => {
+    const timeoutId = window.setTimeout(() => {
       intervalId = window.setInterval(() => {
         currentIdx++;
         setDisplayedLength(currentIdx);

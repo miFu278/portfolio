@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Agent harness folders (impeccable skills + engine binary, ~21MB)
+.pi/
+.agents/
+
 # Environment variables
 .env
 .env.local

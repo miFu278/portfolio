@@ -55,7 +55,7 @@ VITE_EMAILJS_PUBLIC_KEY=abcdefghijk123456
 3. **Important**: Add `.env` to `.gitignore` to keep credentials private
 
 ## Step 6: Test
-1. Restart your dev server: `npm run dev`
+1. Restart your dev server: `pnpm dev`
 2. Go to contact section
 3. Fill out the form and submit
 4. Check your email inbox!

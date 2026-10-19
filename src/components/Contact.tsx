@@ -170,7 +170,7 @@ const Contact: React.FC = () => {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-white/50 transition-colors duration-300"
+                    className="w-full px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-white/50 focus-visible:ring-2 focus-visible:ring-white/70 transition-colors duration-300"
                     placeholder="Your name"
                   />
                 </div>
@@ -186,7 +186,7 @@ const Contact: React.FC = () => {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-white/50 transition-colors duration-300"
+                    className="w-full px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-white/50 focus-visible:ring-2 focus-visible:ring-white/70 transition-colors duration-300"
                     placeholder="your.email@example.com"
                   />
                 </div>
@@ -202,7 +202,7 @@ const Contact: React.FC = () => {
                     onChange={handleChange}
                     required
                     rows={5}
-                    className="w-full px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-white/50 transition-colors duration-300 resize-none"
+                    className="w-full px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-white/50 focus-visible:ring-2 focus-visible:ring-white/70 transition-colors duration-300 resize-none"
                     placeholder="Your message..."
                   />
                 </div>

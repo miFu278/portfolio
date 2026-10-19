@@ -6,14 +6,6 @@ import TextReveal from './TextReveal';
 const ProjectsAndTech: React.FC = () => {
     const [activeProjectId, setActiveProjectId] = useState<string | null>(PROJECTS[0]?.id || null);
     const projectRefs = useRef<(HTMLDivElement | null)[]>([]);
-    const lastActiveRef = useRef<string | null>(null);
-
-    // Debug log - only when actually changes
-    useEffect(() => {
-        if (lastActiveRef.current !== activeProjectId) {
-            lastActiveRef.current = activeProjectId;
-        }
-    }, [activeProjectId]);
 
     // Only use intersection observer on desktop
     useEffect(() => {
@@ -21,6 +13,7 @@ const ProjectsAndTech: React.FC = () => {
         if (!isDesktop) return;
 
         let rafId: number | null = null;
+        const observedRefs = projectRefs.current;
 
         const handleIntersection = (entries: IntersectionObserverEntry[]) => {
             if (rafId) {
@@ -57,7 +50,7 @@ const ProjectsAndTech: React.FC = () => {
             rootMargin: '-30% 0px -30% 0px'
         });
 
-        projectRefs.current.forEach((ref) => {
+        observedRefs.forEach((ref) => {
             if (ref) observer.observe(ref);
         });
 
@@ -65,7 +58,7 @@ const ProjectsAndTech: React.FC = () => {
             if (rafId) {
                 cancelAnimationFrame(rafId);
             }
-            projectRefs.current.forEach((ref) => {
+            observedRefs.forEach((ref) => {
                 if (ref) observer.unobserve(ref);
             });
         };
@@ -125,7 +118,7 @@ const ProjectsAndTech: React.FC = () => {
 
                                     <div className="space-y-4">
                                         <div>
-                                            <h4 className="text-gray-500 text-xs uppercase tracking-wider mb-2 font-mono">DESCRIPTION</h4>
+                                            <h4 className="text-gray-400 text-xs uppercase tracking-wider mb-2 font-mono">DESCRIPTION</h4>
                                             <p className="text-gray-300 leading-relaxed text-sm sm:text-base">{project.description}</p>
                                         </div>
 
@@ -193,7 +186,7 @@ const ProjectsAndTech: React.FC = () => {
 
                                         <div className="space-y-8">
                                             <div>
-                                                <h4 className="text-gray-500 text-xs uppercase tracking-wider mb-3 font-mono">DESCRIPTION</h4>
+                                                <h4 className="text-gray-400 text-xs uppercase tracking-wider mb-3 font-mono">DESCRIPTION</h4>
                                                 <p className="text-gray-300 leading-relaxed text-base lg:text-lg">{project.description}</p>
                                             </div>
 
@@ -237,7 +230,7 @@ const ProjectsAndTech: React.FC = () => {
                                                         'px-5 py-4 min-w-[110px]'
                                                     } ${isActive
                                                         ? 'bg-white/95 text-gray-900 shadow-[0_0_20px_rgba(255,255,255,0.3)] scale-100 font-semibold'
-                                                        : 'bg-gray-800/40 text-gray-500 opacity-40 scale-95 hover:opacity-70'
+                                                        : 'bg-gray-800/40 text-gray-400 opacity-60 scale-95 hover:opacity-85'
                                                     }`}
                                                 >
                                                     <div className="flex items-center gap-3">
