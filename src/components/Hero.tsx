@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronDown, Download } from 'lucide-react';
+import { ChevronDown, FileText } from 'lucide-react';
 import avatarImg from '../assets/mp.jpg';
 import resumePdf from '../assets/ttmp_cv.pdf';
 import ScrollReveal from './ScrollReveal';
@@ -99,10 +99,11 @@ const Hero: React.FC = () => {
               </a>
               <a
                 href={resumePdf}
-                download="ThanTrinhMinhPhuc_BackendSoftwareEngineer_Resume.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="px-6 md:px-8 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-black transition duration-300 transform hover:scale-105 flex items-center justify-center gap-2 text-sm md:text-base"
               >
-                <Download size={18} className="md:w-5 md:h-5" />
+                <FileText size={18} className="md:w-5 md:h-5" />
                 Resume
               </a>
             </div>

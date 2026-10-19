@@ -84,8 +84,7 @@ Active link is derived from an IntersectionObserver over `section[id]`
 **Hero** — 10-column grid, text spans 6 (left, desktop) and avatar spans 4 (right).
 On mobile the avatar is ordered first. Contents: gradient-clipped name (`bg-clip-text`,
 `gray-100 → gray-400`), role, one-line pitch, three CTAs (`View Projects` solid,
-`Contact Me` outline, `Resume` outline+download of `ttmp_cv.pdf` with a canonical
-filename), and an animated scroll-down cue.
+`Contact Me` outline, `Resume` outline opening `ttmp_cv.pdf` in a new tab for online viewing), and an animated scroll-down cue.
 
 **About** — centered narrative paragraph + two equal cards, "Backend Engineering" and
 "Applied AI Research", rendered by a local `CurrentlyLearningItem` component (named for a
