@@ -1,146 +1,47 @@
-# Deploy to GitHub Pages
+# Deploy to Cloudflare Workers
 
-## Prerequisites
-- GitHub account
-- Git installed
-- Repository created on GitHub
+Hosting target: Cloudflare Workers (static assets). Config lives in `wrangler.jsonc`.
 
-## Steps to Deploy
+## First-time setup (dashboard)
 
-### 1. Initialize Git (if not already done)
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-```
+1. Cloudflare Dashboard → **Workers & Pages** → **Create** → **Import a repository**.
+2. Pick this repo, then:
+   - Build command: `pnpm build`
+   - Deploy command: `pnpm deploy` (= `wrangler deploy`)
+3. Save. Every push to `main` rebuilds and deploys.
 
-### 2. Create GitHub Repository
-1. Go to https://github.com/new
-2. Repository name: `portfolio-website`
-3. Make it **Public** (required for GitHub Pages)
-4. Don't initialize with README (you already have files)
-5. Click "Create repository"
+`wrangler.jsonc` already pins `name`, `compatibility_date`, `assets.directory = ./dist`
+and `not_found_handling: single-page-application`, so the build does not need to guess
+anything (and must not re-run the interactive setup wizard).
 
-### 3. Connect to GitHub
-```bash
-git remote add origin https://github.com/miFu278/portfolio-website.git
-git branch -M main
-git push -u origin main
-```
-
-### 4. Deploy to GitHub Pages
-```bash
-pnpm deploy
-```
-
-This will:
-- Build your project (`pnpm build`)
-- Create a `gh-pages` branch
-- Push the `dist` folder to that branch
-- Deploy automatically
-
-### 5. Enable GitHub Pages
-1. Go to your repository on GitHub
-2. Click **Settings** → **Pages**
-3. Under "Source", select branch: `gh-pages`
-4. Click **Save**
-5. Wait 1-2 minutes
-
-### 6. Access Your Site
-Your portfolio will be live at:
-```
-https://miFu278.github.io/portfolio-website/
-```
-
-## Update Your Site
-
-Whenever you make changes:
+## Deploy from your machine
 
 ```bash
-# 1. Commit your changes
-git add .
-git commit -m "Update portfolio"
-git push
-
-# 2. Deploy
-pnpm deploy
+pnpm deploy                      # wrangler deploy (builds first via wrangler build.command)
+pnpm exec wrangler login         # once, if not logged in
+pnpm exec wrangler dev           # preview the built site locally, SPA routing included
 ```
+
+## Environment variables
+
+EmailJS keys stay in `.env` (gitignored) for local dev. For production set the same
+`VITE_*` values as **Build variables** in the Cloudflare project settings, so they are
+inlined at build time.
 
 ## Troubleshooting
 
-### Site shows 404
-- Make sure repository is **Public**
-- Check GitHub Pages settings
-- Wait a few minutes after deploy
+### `ERR_PNPM_IGNORED_BUILDS: workerd`
+pnpm blocks dependency build scripts. `workerd` must be in `onlyBuiltDependencies`
+in `pnpm-workspace.yaml` (already done). Same fix if another native dep shows up.
 
-### Images/Assets not loading
-- Check `vite.config.ts` has correct `base` path
-- Verify `homepage` in `package.json` matches your repo name
+### Site loads but CSS/JS 404
+`base` in `vite.config.ts` must be `'/'` for Cloudflare. It was `/portfolio/` when the
+site ran on GitHub Pages.
 
-### Deploy fails
-```bash
-# Clear cache and try again
-rm -rf dist
-pnpm build
-pnpm deploy
-```
+### Deploy runs an interactive "Configuring project for Vite / Proceed with setup?"
+`wrangler.jsonc` was missing or not committed. Commit it so the wizard never runs in CI.
 
-### Want custom domain?
-1. Buy a domain (e.g., from Namecheap, GoDaddy)
-2. Add `CNAME` file to `public/` folder with your domain
-3. Configure DNS settings at your domain provider
-4. Update GitHub Pages settings
-
-## Environment Variables
-
-**Important:** Don't commit `.env` file!
-
-For GitHub Pages, you need to:
-1. Keep `.env` in `.gitignore`
-2. Add environment variables in GitHub Secrets (for CI/CD)
-3. Or hardcode them (not recommended for sensitive data)
-
-For EmailJS, it's safe to expose public keys in frontend.
-
-## Custom Domain (Optional)
-
-If you want `phucttm.dev` instead of `miFu278.github.io`:
-
-1. Create file `public/CNAME`:
-```
-phucttm.dev
-```
-
-2. Update `package.json`:
-```json
-"homepage": "https://phucttm.dev"
-```
-
-3. Update `vite.config.ts`:
-```ts
-base: '/'
-```
-
-4. Configure DNS at your domain provider:
-```
-Type: A
-Name: @
-Value: 185.199.108.153
-       185.199.109.153
-       185.199.110.153
-       185.199.111.153
-
-Type: CNAME
-Name: www
-Value: miFu278.github.io
-```
-
-5. Deploy: `pnpm deploy`
-
-## Notes
-
-- First deploy takes 1-2 minutes
-- Updates are usually instant
-- Free hosting with GitHub Pages
-- 100GB bandwidth/month
-- 1GB storage limit
+### Custom domain
+Workers → project → **Settings** → **Domains & Routes** → **Add custom domain**, then point
+the DNS record at Cloudflare. After that, update the canonical/OG URLs in `index.html`,
+`public/sitemap.xml` and `public/robots.txt`.

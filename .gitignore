@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+.wrangler
 
 # Agent harness folders (impeccable skills + engine binary, ~21MB)
 .pi/

@@ -1,13 +1,13 @@
 # Portfolio — Than Trinh Minh Phuc
 
-Single-page portfolio for a backend software engineer. Live at
-**https://miFu278.github.io/portfolio**.
+Single-page portfolio for a backend software engineer. Deployed on Cloudflare Workers
+(static assets).
 
 ## Stack
 
 React 19 + TypeScript + Vite 7 (React Compiler enabled), Tailwind classes via CDN in
 `index.html` plus hand-written CSS, `@emailjs/browser` for the contact form, deployed to
-GitHub Pages with `gh-pages`.
+Cloudflare Workers with `wrangler` (`wrangler.jsonc`).
 
 ## Commands
 
@@ -19,7 +19,7 @@ pnpm dev         # dev server
 pnpm build       # type-check + production build into dist/
 pnpm preview     # serve the built output
 pnpm lint        # eslint
-pnpm deploy      # build then publish dist/ to the gh-pages branch
+pnpm deploy      # wrangler deploy: build, then publish dist/ as Worker static assets
 ```
 
 ## Structure
@@ -40,5 +40,5 @@ No router (anchor links only), no state library, no test runner.
 ## Docs
 
 - `DESIGN.md` — design system: layout, tokens, motion, component inventory.
-- `DEPLOY.md` — GitHub Pages deploy details and troubleshooting.
+- `DEPLOY.md` — Cloudflare Workers deploy details and troubleshooting.
 - `EMAILJS_SETUP.md` — contact form credentials.
