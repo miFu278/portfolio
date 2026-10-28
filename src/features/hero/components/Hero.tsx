@@ -6,6 +6,7 @@ import portrait from '../../../assets/mp.jpg';
 import resumePdf from '../../../assets/ttmp_cv.pdf';
 
 const HERO = chapter('ingress');
+const GATEWAY = chapter('gateway');
 const SERVICES = chapter('services');
 const RESPONSE = chapter('response');
 
@@ -69,6 +70,12 @@ const Hero = () => {
           </span>
         </div>
       </div>
+
+      {/* A full-viewport hero gives no cue that there is a page below it. */}
+      <a className="hero__scroll" href={`#${GATEWAY.id}`} aria-label="Scroll to the next chapter">
+        <span>scroll</span>
+        <i aria-hidden="true" />
+      </a>
     </section>
   );
 };

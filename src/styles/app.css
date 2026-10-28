@@ -192,9 +192,9 @@
   content: '';
   position: absolute;
   left: 0;
-  right: 0;
   bottom: -6px;
   height: 1px;
+  width: 100%;
   background: var(--signal);
 }
 
@@ -503,6 +503,57 @@
   flex-wrap: wrap;
 }
 
+/* Scroll affordance. A 100svh hero reads as a complete screen, so nothing on it
+   says the page continues. */
+.hero__scroll {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(1rem, 3vh, 1.75rem);
+  transform: translateX(-50%);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  transition: color var(--d-ui) var(--ease-out);
+}
+
+.hero__scroll:hover {
+  color: var(--text-primary);
+}
+
+.hero__scroll i {
+  width: 1px;
+  height: 30px;
+  background: linear-gradient(to bottom, var(--signal), transparent);
+  transform-origin: top;
+  animation: heroCue 2.6s var(--ease-inout) infinite;
+}
+
+@keyframes heroCue {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+/* no vertical room for it on short viewports, and it would collide with the foot */
+@media (max-height: 720px) {
+  .hero__scroll {
+    display: none;
+  }
+}
+
 @media (min-width: 860px) {
   .hero__grid {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -741,6 +792,14 @@
   transform: none;
 }
 
+/* Touch devices never hover, so the hint would never appear. Show it there. */
+@media (hover: none) {
+  .figure__hint {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .lightbox {
   position: fixed;
   inset: 0;
@@ -768,6 +827,28 @@
   gap: var(--sp-4);
   padding: var(--sp-3) var(--sp-6);
   border-bottom: 1px solid var(--line);
+}
+
+/* the native dialog appears instantly; give it a beat */
+.lightbox[open] {
+  animation: lightboxIn 200ms var(--ease-out);
+}
+
+.lightbox[open] .lightbox__bar {
+  animation: lightboxBarIn 260ms var(--ease-out);
+}
+
+@keyframes lightboxIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes lightboxBarIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
 }
 
 .lightbox__tools {
