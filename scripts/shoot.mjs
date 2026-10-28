@@ -33,6 +33,9 @@ const SHOTS = [
   { name: 'ui-1-hero', url: `${BASE}/?ui=1`, width: 1500, height: 900, viewportOnly: true },
   { name: 'ui-2-hero', url: `${BASE}/?ui=2`, width: 1500, height: 900, viewportOnly: true },
   { name: 'ui-3-hero', url: `${BASE}/?ui=3`, width: 1500, height: 900, viewportOnly: true },
+  { name: 'ui-1-mobile-hero', url: `${BASE}/?ui=1`, width: 390, height: 844, viewportOnly: true },
+  { name: 'ui-2-mobile-hero', url: `${BASE}/?ui=2`, width: 390, height: 844, viewportOnly: true },
+  { name: 'ui-3-mobile-hero', url: `${BASE}/?ui=3`, width: 390, height: 844, viewportOnly: true },
 ];
 
 mkdirSync(OUT, { recursive: true });

@@ -448,6 +448,24 @@
   margin-top: var(--sp-8);
 }
 
+/* On a phone the three actions wrap into a ragged block; stack them instead. */
+@media (max-width: 640px) {
+  .hero__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero__actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .hero__actions .btn--quiet {
+    justify-content: flex-start;
+    padding-inline: 0;
+  }
+}
+
 .hero__portrait {
   position: relative;
   justify-self: start;
