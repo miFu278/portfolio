@@ -677,9 +677,16 @@
   margin-top: var(--sp-6);
   border: var(--surface-border);
   border-radius: var(--radius);
-  background: var(--bg-sunk);
-  padding: var(--sp-4);
+  /* the exports carry their own #121212 plate */
+  background: #121212;
+  padding: 0;
   overflow: hidden;
+}
+
+.project__diagram img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 /* =================================================== diagrams (inline SVG) =

@@ -1,18 +1,19 @@
-import type { ComponentType } from 'react';
 import { LAYER_ORDER, PROJECTS, TECHNOLOGIES, chapter } from '../../../config/content';
 import type { DiagramKey, Project } from '../../../types';
 import ChapterHead from '../../../components/ui/ChapterHead';
 import Reveal from '../../../components/ui/Reveal';
 import { useActiveProject } from '../hooks/useActiveProject';
-import EcommerceDiagram from './diagrams/EcommerceDiagram';
-import RagDiagram from './diagrams/RagDiagram';
 
 const SERVICES = chapter('services');
 const PROJECT_IDS = PROJECTS.map((p) => p.id);
 
-const DIAGRAMS: Record<DiagramKey, ComponentType> = {
-  ecommerce: EcommerceDiagram,
-  rag: RagDiagram,
+/**
+ * Figures exported by hand from docs/diagrams/*.excalidraw.
+ * That folder holds the editable scene; the site ships the raster.
+ */
+const DIAGRAM_SRC: Record<DiagramKey, string> = {
+  ecommerce: '/diagrams/ecommerce.png',
+  rag: '/diagrams/rag.png',
 };
 
 const toTechs = (ids: string[]) =>
@@ -84,19 +85,16 @@ const ProjectBlock = ({
     <div className="project__body">
       <p className="body">{project.body}</p>
 
-      {project.diagram &&
-        (() => {
-          const Diagram = DIAGRAMS[project.diagram];
-          return (
-            <Reveal as="figure" className="project__diagram">
-              {/* The figure scrolls on its own axis; a 840-wide drawing must never
-                  make the whole page scroll sideways on a phone. */}
-              <div className="diagram-scroll">
-                <Diagram />
-              </div>
-            </Reveal>
-          );
-        })()}
+      {project.diagram && (
+        <Reveal as="figure" className="project__diagram">
+          <img
+            src={DIAGRAM_SRC[project.diagram]}
+            alt={`${project.title} architecture`}
+            loading="lazy"
+            decoding="async"
+          />
+        </Reveal>
+      )}
 
       <div className="project__stats">
         {project.stats.map((s) => (
