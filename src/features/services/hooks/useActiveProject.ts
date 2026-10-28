@@ -2,15 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 
 /**
  * Tracks which project block is most visible, so the sticky registry can
- * highlight only the technologies that project actually uses.
+ * highlight only the technologies that project actually uses. This is the
+ * scroll-linked stack: the panel is the map, the page is the territory.
  */
-export const useActiveProject = (ids: string[], enabled: boolean) => {
+export const useActiveProject = (ids: string[]) => {
   const [activeId, setActiveId] = useState<string | null>(ids[0] ?? null);
   const refs = useRef<Record<string, HTMLElement | null>>({});
 
   useEffect(() => {
-    if (!enabled) return;
-
     const elements = ids
       .map((id) => refs.current[id])
       .filter((el): el is HTMLElement => Boolean(el));
@@ -30,7 +29,7 @@ export const useActiveProject = (ids: string[], enabled: boolean) => {
 
     elements.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [ids, enabled]);
+  }, [ids]);
 
   const register = (id: string) => (el: HTMLElement | null) => {
     refs.current[id] = el;

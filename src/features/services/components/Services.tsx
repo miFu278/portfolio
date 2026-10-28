@@ -1,11 +1,10 @@
-import { LAYER_ORDER, PROJECTS, TECHNOLOGIES } from '../../../config/content';
-import type { Project, UIVariant } from '../../../types';
+import { LAYER_ORDER, PROJECTS, TECHNOLOGIES, chapter } from '../../../config/content';
+import type { Project } from '../../../types';
 import ChapterHead from '../../../components/ui/ChapterHead';
 import Reveal from '../../../components/ui/Reveal';
 import { useActiveProject } from '../hooks/useActiveProject';
-import { CHAPTERS } from '../../../config/content';
 
-const SERVICES = CHAPTERS[2];
+const SERVICES = chapter('services');
 const PROJECT_IDS = PROJECTS.map((p) => p.id);
 
 const toTechs = (ids: string[]) =>
@@ -14,7 +13,7 @@ const toTechs = (ids: string[]) =>
 const TechRow = ({ project }: { project: Project }) => (
   <div className="services__techrow">
     {toTechs(project.tech).map((tech) => (
-      <span key={tech.id} className="tech" data-active="true">
+      <span key={tech.id} className="tech">
         <tech.icon size={12} />
         {tech.name}
       </span>
@@ -70,7 +69,7 @@ const ProjectBlock = ({
       <p className="project__index">
         {project.index} / {String(total).padStart(2, '0')} — {project.year}
       </p>
-      <h3 className="display-m project__title">{project.title}</h3>
+      <h3 className="project__title">{project.title}</h3>
       <p className="project__meta">{project.meta}</p>
     </div>
 
@@ -106,8 +105,8 @@ const ProjectBlock = ({
   </article>
 );
 
-const Services = ({ variant }: { variant: UIVariant }) => {
-  const { activeId, register } = useActiveProject(PROJECT_IDS, variant === '1');
+const Services = () => {
+  const { activeId, register } = useActiveProject(PROJECT_IDS);
   const activeProject = PROJECTS.find((p) => p.id === activeId);
 
   return (
@@ -130,7 +129,7 @@ const Services = ({ variant }: { variant: UIVariant }) => {
             ))}
           </div>
 
-          {variant === '1' && <Registry activeProject={activeProject} />}
+          <Registry activeProject={activeProject} />
         </div>
       </div>
     </section>

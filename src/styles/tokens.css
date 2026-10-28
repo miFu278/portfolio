@@ -1,12 +1,11 @@
 /* ============================================================================
-   TOKENS — one contract, three skins.
-   Every visual decision in the app reads from these variables. A UI variant is
-   nothing more than a different block of values; no component knows which
-   variant is active. See src/config/ui.ts for the registry of variants.
+   TOKENS — one skin.
+   Merged from the three lab variants: the REGISTRY console palette and type
+   discipline, with the ONE REQUEST layout for the services chapter.
 
-   Accent discipline: --signal belongs to the request. It may appear on the
-   traveling packet, the active chapter marker, the availability dot, and one
-   number per section. Nowhere else.
+   Accent discipline: --signal belongs to the request. It appears on the active
+   chapter marker, the availability dot, the technologies the current project
+   actually uses, and one number per section. Nowhere else.
    ========================================================================= */
 
 :root {
@@ -27,19 +26,38 @@
   --sp-12: 48px;
   --sp-16: 64px;
   --sp-24: 96px;
-  --chapter-pad: clamp(5rem, 11vh, 10rem);
+  --chapter-pad: clamp(5rem, 11vh, 9rem);
 
   /* -- type ---------------------------------------------------------------- */
   --font-display: 'Archivo', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-  --fs-display-xl: clamp(2.75rem, 9.5vw, 8.5rem);
-  --fs-display-l: clamp(2rem, 5.2vw, 4.25rem);
-  --fs-display-m: clamp(1.5rem, 3vw, 2.5rem);
+  --fs-display-xl: clamp(2.75rem, 9vw, 7.5rem);
+  --fs-display-l: clamp(2rem, 5vw, 4rem);
+  --fs-display-m: clamp(1.5rem, 2.8vw, 2.25rem);
   --fs-lead: clamp(1.0625rem, 1.4vw, 1.3125rem);
   --fs-body: 1rem;
   --fs-mono: 0.8125rem;
   --fs-label: 0.6875rem;
   --tracking-label: 0.16em;
+  --display-tracking: -0.025em;
+
+  /* -- colour -------------------------------------------------------------- */
+  --bg: #0b0d0e;
+  --bg-raised: #14181a;
+  --bg-sunk: #050708;
+  --line: #212a2d;
+  --line-hot: rgba(232, 237, 238, 0.26);
+  --text-primary: #e8edee;
+  --text-body: #9fb0b4;
+  --text-dim: #5d6b6f;
+  --signal: #ffb224;
+  --signal-soft: rgba(255, 178, 36, 0.12);
+
+  /* -- surfaces ------------------------------------------------------------ */
+  --surface: var(--bg-raised);
+  --surface-border: 1px solid var(--line);
+  --surface-pad: var(--sp-6);
+  --radius: var(--r-sm);
 
   /* -- motion -------------------------------------------------------------- */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -48,68 +66,6 @@
   --d-ui: 320ms;
   --d-reveal: 750ms;
   --d-chapter: 1100ms;
-}
-
-/* --------------------------------------------------------- 1 · ONE REQUEST */
-[data-ui='1'] {
-  --bg: #08080a;
-  --bg-raised: #111114;
-  --bg-sunk: #000000;
-  --line: #1e1e23;
-  --line-hot: rgba(255, 255, 255, 0.28);
-  --text-primary: #f2f2f0;
-  --text-body: #b4b4b8;
-  --text-dim: #6e6e76;
-  --signal: #5ae6b0;
-  --signal-soft: rgba(90, 230, 176, 0.14);
-  --display-transform: none;
-  --display-tracking: -0.035em;
-  --display-stretch: 100%;
-  --surface: transparent;
-  --surface-border: 1px solid var(--line);
-  --surface-pad: var(--sp-8);
-  --radius: var(--r-md);
-}
-
-/* ----------------------------------------------------------------- 2 · PAPER */
-[data-ui='2'] {
-  --bg: #f4f1ea;
-  --bg-raised: #efebe2;
-  --bg-sunk: #e8e3d8;
-  --line: #d6cfc0;
-  --line-hot: #14130f;
-  --text-primary: #14130f;
-  --text-body: #423f38;
-  --text-dim: #86806f;
-  --signal: #b4472a;
-  --signal-soft: rgba(180, 71, 42, 0.1);
-  --font-display: 'Instrument Serif', 'Times New Roman', serif;
-  --display-tracking: -0.01em;
-  --display-stretch: 100%;
-  --surface: transparent;
-  --surface-border: 0;
-  --surface-pad: 0;
-  --radius: 0px;
-}
-
-/* -------------------------------------------------------------- 3 · REGISTRY */
-[data-ui='3'] {
-  --bg: #0b0d0e;
-  --bg-raised: #14181a;
-  --bg-sunk: #050708;
-  --line: #212a2d;
-  --line-hot: rgba(255, 178, 36, 0.55);
-  --text-primary: #e8edee;
-  --text-body: #9fb0b4;
-  --text-dim: #5d6b6f;
-  --signal: #ffb224;
-  --signal-soft: rgba(255, 178, 36, 0.12);
-  --display-transform: none;
-  --display-tracking: -0.02em;
-  --surface: var(--bg-raised);
-  --surface-border: 1px solid var(--line);
-  --surface-pad: var(--sp-6);
-  --radius: var(--r-sm);
 }
 
 /* ============================================================== base reset */
@@ -134,7 +90,6 @@ body {
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-  transition: background-color var(--d-ui) var(--ease-out), color var(--d-ui) var(--ease-out);
 }
 
 h1,
@@ -199,8 +154,6 @@ ul {
   font-weight: 700;
   line-height: 0.95;
   letter-spacing: var(--display-tracking);
-  text-transform: var(--display-transform);
-  font-stretch: var(--display-stretch);
   text-wrap: balance;
 }
 
@@ -217,12 +170,6 @@ ul {
   font-size: var(--fs-display-m);
   line-height: 1.1;
   font-weight: 600;
-}
-
-/* Paper variant leans on the serif's italics for emphasis instead of weight. */
-[data-ui='2'] .display-xl,
-[data-ui='2'] .display-l {
-  font-weight: 400;
 }
 
 .lead {
@@ -245,7 +192,6 @@ ul {
   font-family: var(--font-mono);
   font-size: var(--fs-mono);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.01em;
 }
 
 .label {
@@ -255,11 +201,6 @@ ul {
   letter-spacing: var(--tracking-label);
   color: var(--text-dim);
   font-variant-numeric: tabular-nums;
-}
-
-.emph {
-  font-style: italic;
-  color: var(--text-primary);
 }
 
 .signal {
@@ -283,17 +224,6 @@ ul {
 
 .chapter + .chapter {
   border-top: var(--surface-border);
-}
-
-.stack > * + * {
-  margin-top: var(--sp-6);
-}
-
-.rule {
-  height: 1px;
-  background: var(--line);
-  border: 0;
-  margin: 0;
 }
 
 /* ==================================================================== reveal */

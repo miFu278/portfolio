@@ -70,5 +70,3 @@ export interface Mission {
   subject: string;
   opener: string;
 }
-
-export type UIVariant = '1' | '2' | '3';

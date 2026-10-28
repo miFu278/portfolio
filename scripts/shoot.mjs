@@ -24,18 +24,11 @@ if (!CHROME) {
 }
 
 const SHOTS = [
-  { name: 'ui-1-desktop', url: `${BASE}/?ui=1`, width: 1440, height: 900 },
-  { name: 'ui-2-desktop', url: `${BASE}/?ui=2`, width: 1440, height: 900 },
-  { name: 'ui-3-desktop', url: `${BASE}/?ui=3`, width: 1440, height: 900 },
-  { name: 'ui-1-mobile', url: `${BASE}/?ui=1`, width: 390, height: 844 },
-  { name: 'ui-2-mobile', url: `${BASE}/?ui=2`, width: 390, height: 844 },
-  { name: 'ui-3-mobile', url: `${BASE}/?ui=3`, width: 390, height: 844 },
-  { name: 'ui-1-hero', url: `${BASE}/?ui=1`, width: 1500, height: 900, viewportOnly: true },
-  { name: 'ui-2-hero', url: `${BASE}/?ui=2`, width: 1500, height: 900, viewportOnly: true },
-  { name: 'ui-3-hero', url: `${BASE}/?ui=3`, width: 1500, height: 900, viewportOnly: true },
-  { name: 'ui-1-mobile-hero', url: `${BASE}/?ui=1`, width: 390, height: 844, viewportOnly: true },
-  { name: 'ui-2-mobile-hero', url: `${BASE}/?ui=2`, width: 390, height: 844, viewportOnly: true },
-  { name: 'ui-3-mobile-hero', url: `${BASE}/?ui=3`, width: 390, height: 844, viewportOnly: true },
+  { name: 'final-desktop', url: `${BASE}/`, width: 1500, height: 900 },
+  { name: 'final-hero', url: `${BASE}/`, width: 1500, height: 900, viewportOnly: true },
+  { name: 'final-services', url: `${BASE}/`, width: 1500, height: 900, viewportOnly: true, scrollTo: '#services' },
+  { name: 'final-mobile', url: `${BASE}/`, width: 390, height: 844 },
+  { name: 'final-mobile-hero', url: `${BASE}/`, width: 390, height: 844, viewportOnly: true },
 ];
 
 mkdirSync(OUT, { recursive: true });
@@ -138,12 +131,28 @@ for (const shot of SHOTS) {
     mobile: shot.width < 600,
   });
 
-  const loaded = cdp.once('Page.loadEventFired');
+  const loaded = Promise.race([cdp.once('Page.loadEventFired'), sleep(8000)]);
   await cdp.send('Page.navigate', { url: shot.url });
   await loaded;
 
   // Let fonts settle and the loader finish.
   await sleep(1400);
+
+  // A hash-only navigation never fires a load event, so section shots scroll
+  // explicitly instead of relying on the URL fragment.
+  if (shot.scrollTo) {
+    await cdp.send('Runtime.evaluate', {
+      expression: `(() => {
+        const el = document.querySelector(${JSON.stringify(shot.scrollTo)});
+        if (!el) return 'missing';
+        document.documentElement.style.scrollBehavior = 'auto';
+        el.scrollIntoView({ block: 'start' });
+        return el.id;
+      })()`,
+      returnByValue: true,
+    });
+    await sleep(700);
+  }
 
   // Walk the page so every IntersectionObserver reveal fires, then return to top.
   if (!shot.viewportOnly) {

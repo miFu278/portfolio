@@ -1,20 +1,20 @@
-import { CHAPTERS, PROFILE } from '../../../config/content';
-import { UI_VARIANTS } from '../../../config/ui';
-import type { UIVariant } from '../../../types';
+import { PROFILE, chapter } from '../../../config/content';
 import { useClock } from '../../../hooks/useClock';
 import Reveal from '../../../components/ui/Reveal';
 import TopologyCanvas from '../../../components/layout/TopologyCanvas';
 import portrait from '../../../assets/mp.jpg';
 import resumePdf from '../../../assets/ttmp_cv.pdf';
 
-const HERO = CHAPTERS[0];
+const HERO = chapter('ingress');
+const SERVICES = chapter('services');
+const RESPONSE = chapter('response');
 
-const Hero = ({ variant }: { variant: UIVariant }) => {
+const Hero = () => {
   const clock = useClock(7);
 
   return (
     <section id={HERO.id} className="hero">
-      {UI_VARIANTS[variant].canvas && <TopologyCanvas />}
+      <TopologyCanvas />
 
       <div className="shell">
         <Reveal className="hero__top">
@@ -40,10 +40,10 @@ const Hero = ({ variant }: { variant: UIVariant }) => {
             </Reveal>
 
             <Reveal delay={240} className="hero__actions">
-              <a className="btn btn--solid" href={`#${CHAPTERS[2].id}`}>
+              <a className="btn btn--solid" href={`#${SERVICES.id}`}>
                 Follow the request ↓
               </a>
-              <a className="btn btn--ghost" href="#response">
+              <a className="btn btn--ghost" href={`#${RESPONSE.id}`}>
                 Send a request
               </a>
               <a
@@ -58,7 +58,7 @@ const Hero = ({ variant }: { variant: UIVariant }) => {
           </div>
 
           <Reveal delay={320} className="hero__portrait">
-            <img src={portrait} alt={`${PROFILE.name}`} width={168} height={168} />
+            <img src={portrait} alt={PROFILE.name} width={168} height={168} />
           </Reveal>
         </div>
 
