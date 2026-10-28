@@ -370,7 +370,9 @@
   position: relative;
   min-height: 100svh;
   display: grid;
-  align-items: end;
+  /* Centred, not bottom-aligned: `end` pushed the block to the floor of the
+     viewport and left a dead band at the top on tall screens. */
+  align-items: center;
   padding-top: 96px;
   padding-bottom: clamp(2.5rem, 8vh, 6rem);
   overflow: hidden;
@@ -495,7 +497,7 @@
   justify-content: space-between;
   align-items: baseline;
   gap: var(--sp-4);
-  margin-top: var(--sp-12);
+  margin-top: clamp(2rem, 5vh, 3.5rem);
   padding-top: var(--sp-4);
   border-top: 1px solid var(--line);
   flex-wrap: wrap;
