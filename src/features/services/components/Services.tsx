@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { LAYER_ORDER, PROJECTS, TECHNOLOGIES, chapter } from '../../../config/content';
 import type { DiagramKey, Project } from '../../../types';
 import ChapterHead from '../../../components/ui/ChapterHead';
 import Reveal from '../../../components/ui/Reveal';
+import Lightbox from '../../../components/ui/Lightbox';
 import { useActiveProject } from '../hooks/useActiveProject';
 
 const SERVICES = chapter('services');
@@ -68,10 +70,12 @@ const ProjectBlock = ({
   project,
   total,
   register,
+  onZoom,
 }: {
   project: Project;
   total: number;
   register: (el: HTMLElement | null) => void;
+  onZoom: (project: Project) => void;
 }) => (
   <article className="project" id={project.id} ref={register}>
     <div className="project__head">
@@ -87,12 +91,20 @@ const ProjectBlock = ({
 
       {project.diagram && (
         <Reveal as="figure" className="project__diagram">
-          <img
-            src={DIAGRAM_SRC[project.diagram]}
-            alt={`${project.title} architecture`}
-            loading="lazy"
-            decoding="async"
-          />
+          <button
+            type="button"
+            className="figure"
+            onClick={() => onZoom(project)}
+            aria-label={`Open ${project.title} architecture full screen`}
+          >
+            <img
+              src={DIAGRAM_SRC[project.diagram]}
+              alt={`${project.title} architecture`}
+              loading="lazy"
+              decoding="async"
+            />
+            <span className="figure__hint">click to zoom</span>
+          </button>
         </Reveal>
       )}
 
@@ -122,6 +134,7 @@ const ProjectBlock = ({
 const Services = () => {
   const { activeId, register } = useActiveProject(PROJECT_IDS);
   const activeProject = PROJECTS.find((p) => p.id === activeId);
+  const [zoom, setZoom] = useState<{ src: string; alt: string } | null>(null);
 
   return (
     <section id={SERVICES.id} className="chapter">
@@ -139,6 +152,13 @@ const Services = () => {
                 project={project}
                 total={PROJECTS.length}
                 register={register(project.id)}
+                onZoom={(p) =>
+                  setZoom(
+                    p.diagram
+                      ? { src: DIAGRAM_SRC[p.diagram], alt: `${p.title} architecture` }
+                      : null,
+                  )
+                }
               />
             ))}
           </div>
@@ -146,6 +166,13 @@ const Services = () => {
           <Registry activeProject={activeProject} />
         </div>
       </div>
+
+      <Lightbox
+        open={zoom !== null}
+        src={zoom?.src ?? ''}
+        alt={zoom?.alt ?? ''}
+        onClose={() => setZoom(null)}
+      />
     </section>
   );
 };
