@@ -91,7 +91,7 @@ export const PROJECTS: Project[] = [
     body: 'An order touches user, product, cart, order, payment and notification. RabbitMQ keeps them consistent, Redis keeps them fast, the gateway keeps them honest. Ocelot fronts the whole thing; Aspire plus Docker means one command brings the topology up.',
     stats: [
       { value: '6', label: 'services' },
-      { value: '2', label: 'databases' },
+      { value: '3', label: 'databases' },
       { value: 'event', label: 'driven' },
     ],
     diagram: 'ecommerce',

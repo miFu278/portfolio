@@ -1,44 +1,66 @@
 # Portfolio — Than Trinh Minh Phuc
 
-Single-page portfolio for a backend software engineer. Deployed on Cloudflare Workers
-(static assets).
+Single-page portfolio for a backend software engineer. Six chapters, one page, no router.
+Deployed as static assets on Cloudflare Workers.
 
 ## Stack
 
-React 19 + TypeScript + Vite 7 (React Compiler enabled), Tailwind classes via CDN in
-`index.html` plus hand-written CSS, `@emailjs/browser` for the contact form, deployed to
-Cloudflare Workers with `wrangler` (`wrangler.jsonc`).
+| Concern | Choice |
+|---|---|
+| Framework | React 19 + TypeScript (strict) |
+| Build | Vite 7 + React Compiler |
+| Styling | Hand-written CSS with custom-property tokens (`src/styles/`) |
+| Icons | `lucide-react`, `react-icons/si` |
+| Contact form | `@emailjs/browser` — no backend |
+| Deploy | Cloudflare Workers static assets (`wrangler.jsonc`) |
+
+**Package manager: pnpm only.** `scripts/ensure-pnpm.mjs` runs on `preinstall` and exits 1 for
+npm/yarn, so a stray `npm install` cannot create a second lockfile.
 
 ## Commands
 
-Package manager: **pnpm** (see `packageManager` in `package.json`).
-
 ```bash
-pnpm install     # install dependencies
+pnpm install     # dependencies
 pnpm dev         # dev server
-pnpm build       # type-check + production build into dist/
-pnpm preview     # serve the built output
+pnpm build       # tsc -b && vite build → dist/
+pnpm preview     # serve the build
 pnpm lint        # eslint
-pnpm deploy      # wrangler deploy: build, then publish dist/ as Worker static assets
+pnpm deploy      # wrangler deploy
+pnpm icons       # regenerate the favicon set from src/assets/mp-chibi.jpg
+pnpm shots       # full-page screenshots via Chrome DevTools Protocol → screenshots/
 ```
 
 ## Structure
 
 ```
 src/
-  App.tsx               section order: Hero → About → Experience → ProjectsAndTech → Research → Contact
-  constants.ts          PROJECTS and TECHNOLOGIES data — add content here, not in components
-  types/type.ts         shared types
-  context/              LoadingContext gates the entrance animations behind the page loader
-  hooks/                useScrollReveal (IntersectionObserver), useFadeIn
-  components/           one file per section + shared reveal/animation primitives
-public/                 favicon, robots.txt, sitemap.xml
+├── components/
+│   ├── layout/   Header · ChapterRail · ScrollProgress · Loader · TopologyCanvas · Footer
+│   └── ui/       Reveal · ChapterHead · Lightbox
+├── config/
+│   └── content.ts     ← every word and number on the site
+├── features/          one folder per chapter, each with an index.ts barrel
+│   ├── hero/          components/Hero
+│   ├── gateway/       components/Gateway          (about)
+│   ├── services/      components/Services + hooks/useActiveProject
+│   ├── anomaly/       components/Anomaly          (research)
+│   ├── observability/ components/Observability    (experience)
+│   └── response/      components/Response + hooks/useContactForm
+├── hooks/        useActiveSection · useClock · useLoadProgress · useReducedMotion
+├── lib/          emailjs.ts — the only third-party transport boundary
+├── pages/        Home.tsx — composes the chapters, owns no logic
+├── styles/       tokens.css (design tokens) · app.css (layout + components)
+├── types/        index.ts
+└── utils/        cn.ts
 ```
 
-No router (anchor links only), no state library, no test runner.
+**Editing content never means editing a component.** Copy, project data, technologies,
+experience, research and contact channels all live in `src/config/content.ts`.
 
 ## Docs
 
-- `DESIGN.md` — design system: layout, tokens, motion, component inventory.
-- `DEPLOY.md` — Cloudflare Workers deploy details and troubleshooting.
+- `DESIGN.md` — design system, chapter structure, motion and accessibility rules.
+- `docs/diagrams/README.md` — how the project figures are drawn, exported and wired in.
+- `DEPLOY.md` — Cloudflare Workers setup and troubleshooting.
 - `EMAILJS_SETUP.md` — contact form credentials.
+- `.diagram-design/README.md` — brand profile for the diagram-design skill.
