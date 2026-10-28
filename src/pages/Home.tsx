@@ -21,6 +21,9 @@ const Home = () => {
 
   return (
     <>
+      <a className="skip-link" href="#ingress">
+        Skip to content
+      </a>
       <Loader progress={progress} done={done} />
       <ScrollProgress />
       <Header />

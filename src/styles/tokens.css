@@ -138,6 +138,27 @@ ul {
   outline-offset: 3px;
 }
 
+/* Keyboard reachability: without this, tabbing walks the six chapter links before
+   reaching any content. Hidden until focused, never display:none. */
+.skip-link {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 200;
+  padding: 10px 16px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  color: var(--bg);
+  background: var(--text-primary);
+  border-radius: var(--r-sm);
+  transform: translateY(-200%);
+  transition: transform var(--d-micro) var(--ease-out);
+}
+
+.skip-link:focus-visible {
+  transform: none;
+}
+
 @media (max-width: 768px) {
   * {
     -webkit-tap-highlight-color: transparent;
@@ -220,6 +241,37 @@ ul {
   position: relative;
   padding-block: var(--chapter-pad);
   scroll-margin-top: 96px;
+}
+
+/* An accent hairline that draws itself as the chapter enters. Scroll-linked with
+   CSS only — no GSAP, no ScrollTrigger, no scroll listener. Browsers without
+   animation-timeline never paint it, so nothing degrades. */
+.chapter::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background: var(--signal);
+  transform: scaleX(0);
+  transform-origin: left;
+  opacity: 0.55;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .chapter::before {
+      animation: chapterRule linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 85%;
+    }
+  }
+}
+
+@keyframes chapterRule {
+  to {
+    transform: scaleX(1);
+  }
 }
 
 .chapter + .chapter {

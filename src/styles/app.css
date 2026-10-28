@@ -596,6 +596,27 @@
   background: var(--signal);
 }
 
+/* The dash grows as the chapter comes into view, so the eye lands on the numeral
+   before the headline finishes revealing. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .chapter-head__kicker i {
+      animation: kickerGrow linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 45%;
+    }
+  }
+}
+
+@keyframes kickerGrow {
+  from {
+    width: 0;
+  }
+  to {
+    width: 32px;
+  }
+}
+
 .chapter-head__title {
   max-width: 22ch;
 }
