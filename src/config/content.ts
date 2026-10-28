@@ -138,14 +138,14 @@ export const EXPERIENCE: ExperienceEntry[] = [
 export const RESEARCH: ResearchEntry = {
   role: 'First author',
   venue: 'FISAT · EAI · 2026',
-  status: 'Under review',
+  status: 'Accepted',
   title: 'Latent Surprise Is Protocol-Sensitive: JEPA-Based OOD Detection',
   lead: 'Anomaly detection is the layer that decides a request is unlike anything the system has seen before. My research asks whether a world model can tell — before the request reaches a service that cannot handle it.',
   body: 'We probe JEPA world models as out-of-distribution detectors: a model that predicts in latent space gives you a distance signal for free. Across ten paired seeds we found that online EMA score normalization reverses AUROC rankings — meaning the evaluation protocol, not the architecture, was deciding which detector looked best.',
   facts: [
     { label: 'ROLE', value: 'First author' },
     { label: 'VENUE', value: 'FISAT · EAI · 2026' },
-    { label: 'STATUS', value: 'Under review' },
+    { label: 'STATUS', value: 'Accepted' },
     { label: 'METHOD', value: '10 paired seeds · EMA normalization' },
   ],
 };
