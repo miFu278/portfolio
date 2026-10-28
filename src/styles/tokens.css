@@ -292,6 +292,13 @@ ul {
   transform: none;
 }
 
+/* GSAP splits the hero name into words at runtime; each needs its own box before
+   it can be translated on the Y axis. */
+.word {
+  display: inline-block;
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

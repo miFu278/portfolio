@@ -10,6 +10,7 @@ import Anomaly from '../features/anomaly/components/Anomaly';
 import Observability from '../features/observability/components/Observability';
 import Response from '../features/response/components/Response';
 import { useLoadProgress } from '../hooks/useLoadProgress';
+import { useScrollMotion } from '../hooks/useScrollMotion';
 import portrait from '../assets/mp.jpg';
 
 /**
@@ -18,6 +19,7 @@ import portrait from '../assets/mp.jpg';
  */
 const Home = () => {
   const { progress, done } = useLoadProgress(portrait);
+  useScrollMotion();
 
   return (
     <>
