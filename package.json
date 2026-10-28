@@ -14,7 +14,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "icons": "powershell -NoProfile -File scripts/make-icons.ps1",
+    "shots": "node scripts/shoot.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
