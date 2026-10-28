@@ -1,11 +1,19 @@
+import type { ComponentType } from 'react';
 import { LAYER_ORDER, PROJECTS, TECHNOLOGIES, chapter } from '../../../config/content';
-import type { Project } from '../../../types';
+import type { DiagramKey, Project } from '../../../types';
 import ChapterHead from '../../../components/ui/ChapterHead';
 import Reveal from '../../../components/ui/Reveal';
 import { useActiveProject } from '../hooks/useActiveProject';
+import EcommerceDiagram from './diagrams/EcommerceDiagram';
+import RagDiagram from './diagrams/RagDiagram';
 
 const SERVICES = chapter('services');
 const PROJECT_IDS = PROJECTS.map((p) => p.id);
+
+const DIAGRAMS: Record<DiagramKey, ComponentType> = {
+  ecommerce: EcommerceDiagram,
+  rag: RagDiagram,
+};
 
 const toTechs = (ids: string[]) =>
   ids.map((id) => ({ id, ...TECHNOLOGIES[id] })).filter((t) => t.name);
@@ -76,11 +84,19 @@ const ProjectBlock = ({
     <div className="project__body">
       <p className="body">{project.body}</p>
 
-      {project.diagram && (
-        <Reveal as="figure" className="project__diagram">
-          <img src={project.diagram} alt={`${project.title} architecture`} loading="lazy" />
-        </Reveal>
-      )}
+      {project.diagram &&
+        (() => {
+          const Diagram = DIAGRAMS[project.diagram];
+          return (
+            <Reveal as="figure" className="project__diagram">
+              {/* The figure scrolls on its own axis; a 840-wide drawing must never
+                  make the whole page scroll sideways on a phone. */}
+              <div className="diagram-scroll">
+                <Diagram />
+              </div>
+            </Reveal>
+          );
+        })()}
 
       <div className="project__stats">
         {project.stats.map((s) => (

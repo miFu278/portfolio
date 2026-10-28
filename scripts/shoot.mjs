@@ -29,6 +29,8 @@ const SHOTS = [
   { name: 'final-desktop', url: `${BASE}/`, width: 1500, height: 900 },
   { name: 'final-hero', url: `${BASE}/`, width: 1500, height: 900, viewportOnly: true },
   { name: 'final-services', url: `${BASE}/`, width: 1500, height: 900, viewportOnly: true, scrollTo: '#services' },
+  { name: 'diagram-ecommerce', url: `${BASE}/`, width: 1500, height: 950, viewportOnly: true, scrollTo: '#distributed-ecommerce' },
+  { name: 'diagram-rag', url: `${BASE}/`, width: 1500, height: 950, viewportOnly: true, scrollTo: '#rag-learning-assistant' },
   { name: 'final-mobile', url: `${BASE}/`, width: 390, height: 844 },
   { name: 'final-mobile-hero', url: `${BASE}/`, width: 390, height: 844, viewportOnly: true },
 ];

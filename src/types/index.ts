@@ -9,6 +9,9 @@ export interface Technology {
   layer: TechLayer;
 }
 
+/** Which inline diagram component a project renders. */
+export type DiagramKey = 'ecommerce' | 'rag';
+
 export interface ProjectStat {
   value: string;
   label: string;
@@ -24,8 +27,8 @@ export interface Project {
   meta: string;
   body: string;
   stats: ProjectStat[];
-  /** Optional SVG diagram in /public/diagrams. Rendered when present. */
-  diagram?: string;
+  /** Key of the inline SVG diagram component in features/services/components/diagrams. */
+  diagram?: DiagramKey;
   links: { github: string; demo?: string };
   tech: string[];
 }

@@ -626,10 +626,14 @@
 .services__list {
   display: grid;
   gap: clamp(3rem, 8vh, 5rem);
+  /* grid items default to min-width:auto, so the 840-wide drawing inside a
+     card would stretch the track and push the card under the registry. */
+  min-width: 0;
 }
 
 .project {
   position: relative;
+  min-width: 0;
   padding: var(--surface-pad);
   background: var(--surface);
   border: var(--surface-border);
@@ -678,9 +682,50 @@
   overflow: hidden;
 }
 
-.project__diagram img {
+/* =================================================== diagrams (inline SVG) =
+   The figure is inlined rather than referenced as <img src="…svg">: an
+   img-referenced SVG renders in static mode and cannot load a webfont, so the
+   brand pairing would collapse to system fonts. Inlining keeps Archivo and
+   JetBrains Mono, and lets the drawing read the same tokens as the page.
+   ========================================================================= */
+
+.diagram-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  min-width: 0;
+  /* breathing room so a focus ring on the scroll container is not clipped */
+  padding-bottom: 2px;
+}
+
+.diagram {
+  --dg-ink: var(--text-primary);
+  --dg-muted: var(--text-body);
+  --dg-soft: var(--text-body);
+  --dg-accent: var(--signal);
+  --dg-mask: var(--bg-sunk);
+  --dg-dot: rgba(232, 237, 238, 0.1);
+  --dg-rule: var(--line);
+  --dg-zone-fill: rgba(232, 237, 238, 0.026);
+  --dg-zone-stroke: rgba(232, 237, 238, 0.1);
+  --dg-node-fill: rgba(232, 237, 238, 0.035);
+  --dg-stroke: var(--line);
+  --dg-node-accent: rgba(255, 178, 36, 0.08);
+  --dg-node-cloud: rgba(232, 237, 238, 0.055);
+  --dg-stroke-cloud: rgba(232, 237, 238, 0.3);
+  --dg-node-ext: rgba(159, 176, 180, 0.1);
+  --dg-stroke-ext: rgba(159, 176, 180, 0.5);
+
+  display: block;
   width: 100%;
   height: auto;
+}
+
+/* Below this the drawing would scale its own labels under 8px, so the wrapper
+   takes over and scrolls the figure on its own axis instead. */
+@media (max-width: 800px) {
+  .diagram {
+    min-width: 760px;
+  }
 }
 
 .project__stats {
