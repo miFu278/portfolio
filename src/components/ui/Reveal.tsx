@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type ElementType, type ReactNode } from 'react';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
-import { cn } from '../../lib/cn';
+import { cn } from '../../utils/cn';
 
 interface RevealProps {
   children: ReactNode;
