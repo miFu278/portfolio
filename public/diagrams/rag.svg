@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 360" role="img" aria-label="RAG pipeline: upload, ingest, chunk, embed, pgvector retrieval, grounded answer, with auth and usage credits alongside">
+  <defs>
+    <style>
+      .box { fill: none; stroke: #8b8b8b; stroke-opacity: .55; stroke-width: 1.2; }
+      .box--hot { fill: #8b8b8b; fill-opacity: .07; }
+      .t { font-family: 'JetBrains Mono', ui-monospace, monospace; fill: #9a9a9a; font-size: 12px; }
+      .t--hd { fill: #b9b9b9; font-size: 10px; letter-spacing: .14em; }
+      .ln { stroke: #8b8b8b; stroke-opacity: .45; stroke-width: 1; fill: none; }
+    </style>
+    <marker id="ar2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L8 4 L0 8 z" fill="#8b8b8b" fill-opacity=".6" />
+    </marker>
+  </defs>
+
+  <text class="t t--hd" x="40" y="32">INGESTION · off the request path</text>
+
+  <g>
+    <rect class="box" x="40" y="56" width="120" height="54" rx="4" /><text class="t" x="58" y="88">upload</text>
+    <rect class="box" x="200" y="56" width="120" height="54" rx="4" /><text class="t" x="218" y="88">chunk</text>
+    <rect class="box" x="360" y="56" width="120" height="54" rx="4" /><text class="t" x="378" y="88">embed</text>
+    <rect class="box box--hot" x="520" y="56" width="150" height="54" rx="4" /><text class="t" x="538" y="88">pgvector</text>
+  </g>
+
+  <g class="ln">
+    <line x1="160" y1="83" x2="192" y2="83" marker-end="url(#ar2)" />
+    <line x1="320" y1="83" x2="352" y2="83" marker-end="url(#ar2)" />
+    <line x1="480" y1="83" x2="512" y2="83" marker-end="url(#ar2)" />
+  </g>
+
+  <text class="t t--hd" x="40" y="216">RETRIEVAL · on the request path</text>
+
+  <g>
+    <rect class="box" x="40" y="240" width="120" height="54" rx="4" /><text class="t" x="58" y="272">question</text>
+    <rect class="box" x="200" y="240" width="120" height="54" rx="4" /><text class="t" x="218" y="272">search k-nn</text>
+    <rect class="box" x="360" y="240" width="120" height="54" rx="4" /><text class="t" x="378" y="272">context</text>
+    <rect class="box" x="520" y="240" width="150" height="54" rx="4" /><text class="t" x="538" y="272">grounded answer</text>
+  </g>
+
+  <g class="ln">
+    <line x1="160" y1="267" x2="192" y2="267" marker-end="url(#ar2)" />
+    <line x1="320" y1="267" x2="352" y2="267" marker-end="url(#ar2)" />
+    <line x1="480" y1="267" x2="512" y2="267" marker-end="url(#ar2)" />
+    <line x1="595" y1="110" x2="595" y2="232" marker-end="url(#ar2)" />
+  </g>
+
+  <rect class="box" x="730" y="120" width="230" height="112" rx="4" />
+  <text class="t" x="748" y="148">auth · JWT</text>
+  <text class="t" x="748" y="172">course management</text>
+  <text class="t" x="748" y="196">usage credits</text>
+  <text class="t" x="748" y="220" opacity=".55">background jobs</text>
+
+  <text class="t" x="40" y="336" opacity=".5">ingestion never blocks a request · answers can only cite what was ingested</text>
+</svg>

@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@designcodeio/threeui':
-        specifier: ^1.2.0
-        version: 1.2.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(three@0.165.0)
       '@emailjs/browser':
         specifier: ^4.4.1
         version: 4.4.1
@@ -26,9 +23,6 @@ importers:
       react-icons:
         specifier: ^5.5.0
         version: 5.7.0(react@19.3.1)
-      react-sticky-box:
-        specifier: ^2.0.5
-        version: 2.0.5(react@19.3.1)
     devDependencies:
       '@eslint/js':
         specifier: ^9.36.0
@@ -204,13 +198,6 @@ packages:
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
     engines: {node: '>=12'}
-
-  '@designcodeio/threeui@1.2.0':
-    resolution: {integrity: sha512-E6F/+IPfLKYatB5W62H3gK1bp9WYvfO6xuWBaBh8oLVR7fbTeeEwgLqqy7ZPMA0zmDpAy03nKYOIswBXsstL2g==}
-    peerDependencies:
-      react: '>=18 <20'
-      react-dom: '>=18 <20'
-      three: '>=0.149 <1'
 
   '@emailjs/browser@4.4.1':
     resolution: {integrity: sha512-DGSlP9sPvyFba3to2A50kDtZ+pXVp/0rhmqs2LmbMS3I5J8FSOgLwzY2Xb4qfKlOVHh29EAutLYwe5yuEZmEFg==}
@@ -1276,11 +1263,6 @@ packages:
     resolution: {integrity: sha512-QgT5//D3jfjJb6Gsjxv0Slpj23ip+HtOpnNgnb2S5zU3CB26G/IDPGoy4RJB42wzFE46DRsstbW6tKHoKbhAxw==}
     engines: {node: '>=0.10.0'}
 
-  react-sticky-box@2.0.5:
-    resolution: {integrity: sha512-JEIuN7Q3razU1NNS0vddC12GXCUkj7T4aCpC9ZSTjgBddFsBdTcN1RhYXFLjCE/KDOQqX2Ix308BcdrqtSJbkQ==}
-    peerDependencies:
-      react: '>=16.8.0'
-
   react@19.3.1:
     resolution: {integrity: sha512-QNhWdt7nrgVWWQG58QuGsAR3jv3Hbe4mb4vz7w2csnHavciZJgda1CPNaldF6eVxv90ud3jUXpKlHL69gO38yw==}
     engines: {node: '>=0.10.0'}
@@ -1338,12 +1320,6 @@ packages:
   supports-color@7.2.0:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
     engines: {node: '>=8'}
-
-  three@0.128.0:
-    resolution: {integrity: sha512-i0ap/E+OaSfzw7bD1TtYnPo3VEplkl70WX5fZqZnfZsE3k3aSFudqrrC9ldFZfYFkn1zwDmBcdGfiIm/hnbyZA==}
-
-  three@0.165.0:
-    resolution: {integrity: sha512-cc96IlVYGydeceu0e5xq70H8/yoVT/tXBxV/W8A/U6uOq7DXc4/s1Mkmnu6SqoYGhSRWWYFOhVwvq6V0VtbplA==}
 
   tinyglobby@0.2.17:
     resolution: {integrity: sha512-wXR/dYpcqKmfWpEdZjiKJOwCNFndD0DMnrW/cYjVGttEkBfVgcLFHoNrlj47mjOVic9yyNu65alsgF4NQyTa2g==}
@@ -1622,14 +1598,6 @@ snapshots:
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
-
-  '@designcodeio/threeui@1.2.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(three@0.165.0)':
-    dependencies:
-      react: 19.3.1
-      react-dom: 19.3.1(react@19.3.1)
-      three: 0.165.0
-      three128: three@0.128.0
-      three165: three@0.165.0
 
   '@emailjs/browser@4.4.1': {}
 
@@ -2526,10 +2494,6 @@ snapshots:
 
   react-refresh@0.18.0: {}
 
-  react-sticky-box@2.0.5(react@19.3.1):
-    dependencies:
-      react: 19.3.1
-
   react@19.3.1: {}
 
   resolve-from@4.0.0: {}
@@ -2620,10 +2584,6 @@ snapshots:
   supports-color@7.2.0:
     dependencies:
       has-flag: 4.0.0
-
-  three@0.128.0: {}
-
-  three@0.165.0: {}
 
   tinyglobby@0.2.17:
     dependencies:

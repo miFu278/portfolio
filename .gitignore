@@ -13,6 +13,9 @@ dist-ssr
 *.local
 .wrangler
 
+# Screenshot harness artefacts (Chrome profile lives here)
+.chrome-shots/
+
 # Agent harness folders (impeccable skills + engine binary, ~21MB)
 .pi/
 .agents/

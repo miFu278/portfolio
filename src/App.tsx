@@ -1,40 +1,47 @@
-import './App.css'
-import About from './components/About'
-import Contact from './components/Contact'
-import Experience from './components/Experience'
-import Header from './components/Header'
-import Hero from './components/Hero'
-import PageLoader from './components/PageLoader'
-import ProjectsAndTech from './components/ProjectsAndTech'
-import Research from './components/Research'
-import ScrollProgress from './components/ScrollProgress'
-import Starfield from './components/StarField'
-import { LoadingProvider } from './context/LoadingContext'
+import { useEffect, useState } from 'react';
+import Home from './pages/Home';
+import { resolveVariant } from './config/ui';
+import { PROFILE } from './config/content';
+import type { UIVariant } from './types';
 
-function App() {
-  return (
-    <LoadingProvider>
-      <PageLoader />
-      <ScrollProgress />
-      <div className="relative min-h-screen bg-black text-gray-100">
-        {/* Starfield in the background */}
-        <div className="fixed inset-0 overflow-hidden">
-          <Starfield />
-        </div>
+const App = () => {
+  const [variant, setVariant] = useState<UIVariant>(() => resolveVariant());
 
-        {/* Content above it */}
-        <div className="relative z-10">
-          <Header />
-          <Hero />
-          <About />
-          <Experience />
-          <ProjectsAndTech />
-          <Research />
-          <Contact />
-        </div>
-      </div>
-    </LoadingProvider>
-  )
-}
+  // The variant lives in the URL so a direction can be shared as a link and
+  // survives a reload. Back/forward stays consistent.
+  useEffect(() => {
+    const onPop = () => setVariant(resolveVariant());
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
 
-export default App
+  useEffect(() => {
+    document.documentElement.dataset.ui = variant;
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', variant === '2' ? '#f4f1ea' : '#08080a');
+  }, [variant]);
+
+  useEffect(() => {
+    const ld = document.getElementById('person-jsonld');
+    if (ld) {
+      ld.textContent = JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: PROFILE.name,
+        alternateName: PROFILE.alias,
+        url: PROFILE.siteUrl,
+        email: `mailto:${PROFILE.email}`,
+        jobTitle: PROFILE.role,
+        address: { '@type': 'PostalAddress', addressLocality: 'Ho Chi Minh City', addressCountry: 'VN' },
+        alumniOf: 'FPT University',
+        sameAs: [PROFILE.github],
+        knowsAbout: ['Backend Engineering', 'Distributed Systems', 'Go', '.NET', 'Applied AI'],
+      });
+    }
+  }, []);
+
+  return <Home variant={variant} />;
+};
+
+export default App;
