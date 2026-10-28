@@ -7,6 +7,8 @@
  */
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 const BASE = process.argv[2] ?? 'http://localhost:4173';
@@ -33,6 +35,11 @@ const SHOTS = [
 
 mkdirSync(OUT, { recursive: true });
 
+// The Chrome profile must live OUTSIDE the project. Chrome holds locks on its
+// session files, and Vite's watcher dies with EBUSY if it finds them in-tree.
+const PROFILE = join(tmpdir(), 'portfolio-chrome-shots');
+mkdirSync(PROFILE, { recursive: true });
+
 const chrome = spawn(
   CHROME,
   [
@@ -42,7 +49,7 @@ const chrome = spawn(
     '--disable-gpu',
     '--no-first-run',
     '--no-default-browser-check',
-    '--user-data-dir=' + process.cwd() + '/.chrome-shots',
+    '--user-data-dir=' + PROFILE,
     'about:blank',
   ],
   { stdio: 'ignore' },

@@ -11,4 +11,11 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    watch: {
+      // Never walk build output, deploy artefacts or screenshot captures.
+      // Anything with live file locks in here kills the watcher with EBUSY.
+      ignored: ['**/dist/**', '**/.wrangler/**', '**/screenshots/**', '**/.chrome-shots/**'],
+    },
+  },
 })
