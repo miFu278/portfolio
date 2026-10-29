@@ -560,6 +560,37 @@ check(
     : `still at ${beat.samples[1].at * 100}% of the hold, first movement at ${moving ? moving.at * 100 : 'none'}%`,
 );
 
+// The arrival: while the card is still scrolling into view the track must not
+// have moved at all. A sliver of the next project at this point is the shape of
+// the bug this check exists for.
+const arrival = await cdp.evaluate(`(async () => {
+  document.documentElement.style.scrollBehavior = 'auto';
+  const stage = document.querySelector('.services__stage');
+  const hold = stage.parentElement;
+  const track = document.querySelector('.services__list');
+  const pinTop = Math.round(hold.getBoundingClientRect().top + window.scrollY);
+  const rows = [];
+  for (let back = 480; back >= 0; back -= 40) {
+    window.scrollTo(0, pinTop - back);
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    rows.push({
+      back,
+      stageTop: Math.round(stage.getBoundingClientRect().top),
+      x: Math.round(Number.parseFloat(track.style.getPropertyValue('--services-x')) || 0),
+    });
+  }
+  return rows;
+})()`, true);
+
+const early = arrival.filter((r) => r.stageTop > 1 && r.x !== 0);
+check(
+  'the track has not moved while the card is still arriving',
+  early.length === 0,
+  early.length
+    ? early.map((r) => `${-r.back}px short of the pin, stage ${r.stageTop}px down, track already at ${r.x}px`).join('; ')
+    : `${arrival.length} positions from 480px out, track at 0 until the stage sticks`,
+);
+
 check(
   'the projects travel one stage width, then park',
   beat !== null && Math.abs(beat.samples[10].x + beat.spread) <= 2 && parked !== null && parked.at < 0.95,

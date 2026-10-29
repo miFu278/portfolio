@@ -212,7 +212,7 @@ export const useScrollMotion = () => {
         // Three numbers, in scroll order: a hold on the first project so it can be
         // read before it moves, the travel itself, and the dwell that releases
         // the chapter.
-        const lead = () => Math.round(window.innerHeight * 0.3);
+        const lead = () => Math.round(window.innerHeight * 0.4);
         const dwell = () => Math.round(window.innerHeight * 0.5);
         const held = () => lead() + spread() + dwell();
 
@@ -242,22 +242,30 @@ export const useScrollMotion = () => {
           stage.style.opacity = `${(1 - 0.45 * leave).toFixed(3)}`;
         };
 
-        const state = { progress: 0 };
-        const tween = gsap.to(state, {
-          progress: 1,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: hold,
-            start: 'top top',
-            end: () => `+=${held()}`,
-            scrub: true,
-          },
-          onUpdate: () => place(state.progress),
+        const apply = () => {
+          // How far the wrapper's top has gone above the viewport top is the
+          // same number the sticky stage uses, so reading it here means the
+          // travel cannot start before the stage has actually stuck. A
+          // ScrollTrigger progress is a second, independent measurement of that
+          // distance, and when the two disagree by a few dozen pixels the track
+          // is already part way across while the card is still scrolling into
+          // view, which shows as a sliver of the next project at the hold.
+          const gone = Math.min(held(), Math.max(0, -hold.getBoundingClientRect().top));
+          place(gone / (held() || 1));
+        };
+
+        const trigger = ScrollTrigger.create({
+          trigger: hold,
+          start: 'top top',
+          end: () => `+=${held()}`,
+          onUpdate: apply,
+          onRefresh: apply,
         });
+        apply();
 
         return () => {
           ScrollTrigger.removeEventListener('refreshInit', room);
-          tween.kill();
+          trigger.kill();
           hold.style.removeProperty('height');
           track.style.removeProperty('--services-x');
           stage.style.removeProperty('transform');
