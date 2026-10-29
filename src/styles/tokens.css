@@ -34,7 +34,7 @@
      rather than as another weight of the same one. */
   --font-role: 'Instrument Serif', Georgia, serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-  --fs-display-xl: clamp(2.75rem, 9vw, 7.5rem);
+  --fs-display-xl: clamp(2.75rem, min(9vw, 13vh), 7.5rem);
   --fs-display-l: clamp(2rem, 5vw, 4rem);
   --fs-display-m: clamp(1.5rem, 2.8vw, 2.25rem);
   --fs-lead: clamp(1.0625rem, 1.4vw, 1.3125rem);

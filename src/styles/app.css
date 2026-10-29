@@ -439,8 +439,12 @@
   /* Centred, not bottom-aligned: `end` pushed the block to the floor of the
      viewport and left a dead band at the top on tall screens. */
   align-items: center;
-  padding-top: 96px;
-  padding-bottom: clamp(2.5rem, 8vh, 6rem);
+  /* Height-aware, all of it. The opening frame is a claim, a role, a lead, the
+     actions and the foot, and on a 720px viewport the fixed rhythm this started
+     with ran the foot off the bottom of the hero, so the page's first screen no
+     longer fitted its own first screen. */
+  padding-top: clamp(64px, 10vh, 96px);
+  padding-bottom: clamp(32px, 7vh, 6rem);
   overflow: hidden;
 }
 
@@ -493,7 +497,7 @@
   letter-spacing: 0.02em;
   color: var(--text-body);
   line-height: 1.5;
-  margin-top: var(--sp-6);
+  margin-top: clamp(10px, 1.8vh, var(--sp-6));
   max-width: 34ch;
   min-height: 3em;
 }
@@ -521,8 +525,8 @@
 .hero__role {
   display: flex;
   align-items: baseline;
-  margin-top: var(--sp-6);
-  font-size: clamp(1.75rem, 3.4vw, 2.75rem);
+  margin-top: clamp(10px, 1.8vh, var(--sp-6));
+  font-size: clamp(1.5rem, min(3.4vw, 4.6vh), 2.75rem);
   line-height: 1.15;
 }
 
@@ -541,6 +545,8 @@
 }
 
 .role__word {
+  position: relative;
+  z-index: 1;
   display: inline-block;
   white-space: nowrap;
 }
@@ -549,26 +555,20 @@
   position: absolute;
   left: 0;
   top: 0;
+  z-index: 0;
   pointer-events: none;
 }
 
-/* Left to right, a character at a time: the word comes apart rather than being
-   swapped out, which is the effect the reference site gets from petals. */
+/* The word that arrives does so at once; only the one leaving is animated. It
+   dissolves left to right a character at a time, behind the new word, so the
+   line is readable the whole way through the swap. */
 .role__char {
   display: inline-block;
-  animation: roleCharIn 340ms var(--ease-out) both;
-  animation-delay: calc(180ms + var(--i, 0) * 28ms);
 }
 
 .role__word--out .role__char {
   animation: roleCharOut 300ms var(--ease-out) both;
-  animation-delay: calc(var(--i, 0) * 28ms);
-}
-
-@keyframes roleCharIn {
-  from {
-    opacity: 0;
-  }
+  animation-delay: calc(var(--i, 0) * 24ms);
 }
 
 @keyframes roleCharOut {
@@ -577,46 +577,7 @@
   }
 }
 
-/* Glyph fragments thrown off by each swap. Decoration, hidden from the reader.
-   They fall and drift outward rather than rising, so they never cross the claim
-   above the line. */
-.role__bits {
-  position: absolute;
-  left: 0;
-  top: 0;
-  pointer-events: none;
-}
-
-.role__bit {
-  position: absolute;
-  left: calc(14% + var(--n, 0) * 16%);
-  top: 22%;
-  font-family: var(--font-mono);
-  font-size: 0.4em;
-  color: var(--signal);
-  opacity: 0;
-  animation: roleBit 820ms var(--ease-out) both;
-  animation-delay: calc(60ms + var(--n, 0) * 40ms);
-}
-
-@keyframes roleBit {
-  0% {
-    opacity: 0;
-    transform: translate3d(0, 0, 0);
-  }
-
-  20% {
-    opacity: 0.7;
-  }
-
-  100% {
-    opacity: 0;
-    transform: translate3d(calc(var(--drift, 1) * 0.9em), 0.85em, 0);
-  }
-}
-
-/* The tail dips out of its own clip and comes back up, so the line reads as
-   stepping to the next word rather than cutting to it. */
+/* The tail dips out of its own clip and snaps back when the next word lands. */
 .role__tail {
   display: inline-block;
   clip-path: inset(-0.6em -0.25em 0 -0.25em);
@@ -627,21 +588,15 @@
 
 .role__tail-in {
   display: inline-block;
-  animation: tailDip 980ms var(--ease-rise) both;
+}
+
+.role__tail-in.is-dipping {
+  animation: tailDip 400ms var(--ease-rise) both;
 }
 
 @keyframes tailDip {
-  0% {
-    transform: translateY(0);
-  }
-
-  42%,
-  47% {
+  to {
     transform: translateY(112%);
-  }
-
-  100% {
-    transform: translateY(0);
   }
 }
 
@@ -674,19 +629,17 @@
     display: none;
   }
 
-  .role__char,
   .role__word--out .role__char,
-  .role__tail-in {
+  .role__tail-in.is-dipping {
     animation: none;
   }
 
-  .role__word--out,
-  .role__bits {
+  .role__word--out {
     display: none;
   }
 }
 .hero__lead {
-  margin-top: var(--sp-6);
+  margin-top: clamp(10px, 1.8vh, var(--sp-6));
   font-family: var(--font-mono);
   font-size: var(--fs-mono);
   line-height: 1.75;
@@ -697,7 +650,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--sp-3);
-  margin-top: var(--sp-8);
+  margin-top: clamp(16px, 3vh, var(--sp-8));
 }
 
 @media (max-width: 640px) {
@@ -747,7 +700,7 @@
   justify-content: space-between;
   align-items: baseline;
   gap: var(--sp-4);
-  margin-top: clamp(2rem, 5vh, 3.5rem);
+  margin-top: clamp(16px, 3.2vh, 3.5rem);
   padding-top: var(--sp-4);
   border-top: 1px solid var(--line);
   flex-wrap: wrap;

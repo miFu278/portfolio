@@ -898,7 +898,6 @@ const heroText = `(() => {
   const slot = role.querySelector('.role__accent');
   const tail = role.querySelector('.role__tail');
   const cs = getComputedStyle(role.querySelector('.role__accent'));
-  const tailStyle = getComputedStyle(role.querySelector('.role__tail-in'));
   return {
     typed: typed ? typed.textContent : '',
     spoken: spoken ? spoken.textContent : '',
@@ -910,8 +909,6 @@ const heroText = `(() => {
     // How far the tail's left edge sits from the accent's right edge: the line is
     // flush, so this is the gap and nothing else.
     gap: slot && tail ? Math.round(tail.getBoundingClientRect().left - slot.getBoundingClientRect().right) : -1,
-    tailDip: tailStyle.animationName,
-    bits: role.querySelectorAll('.role__bit').length,
     font: cs.fontFamily,
     fontStyle: cs.fontStyle,
     colour: cs.color,
@@ -929,6 +926,18 @@ for (let i = 0; i < 45 && !midType; i += 1) {
   })()`);
   midType = pair !== null && pair.shown !== pair.full;
   if (!midType) await sleep(100);
+}
+
+// The tail only animates while it is leaving, so the dip has to be caught in the
+// act rather than read at rest.
+let dipped = false;
+for (let i = 0; i < 60 && !dipped; i += 1) {
+  const name = await cdp.evaluate(`(() => {
+    const el = document.querySelector('.role__tail-in');
+    return el ? getComputedStyle(el).animationName : 'none';
+  })()`);
+  dipped = name.includes('tailDip');
+  if (!dipped) await sleep(100);
 }
 
 const heroFirst = await cdp.evaluate(heroText);
@@ -958,8 +967,8 @@ check(
     heroRole.role !== heroFirst.role &&
     heroRole.tail === heroFirst.tail &&
     Math.abs(heroRole.gap - heroFirst.gap) <= 1 &&
-    heroRole.tailDip.includes('tailDip'),
-  `${heroFirst.role} -> ${heroRole.role}, ${heroFirst.tail} flush at ${heroFirst.gap}px then ${heroRole.gap}px, ${heroFirst.fontStyle} ${heroFirst.font.split(',')[0]}, ${heroFirst.colour}`,
+    dipped,
+  `${heroFirst.role} -> ${heroRole.role}, ${heroFirst.tail} flush at ${heroFirst.gap}px then ${heroRole.gap}px, dipped ${dipped}, ${heroFirst.fontStyle} ${heroFirst.font.split(',')[0]}, ${heroFirst.colour}`,
 );
 
 check(
