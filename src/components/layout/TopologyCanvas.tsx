@@ -124,7 +124,7 @@ const TopologyCanvas = () => {
     // offscreen sheet and blitted each frame. Redrawing every edge and node per
     // frame was the largest single frame cost on the page.
     let sheet: HTMLCanvasElement | null = null;
-    let accent = '#5ae6b0';
+    let accent = '#38bdf8';
 
     const bake = () => {
       const next = document.createElement('canvas');
@@ -156,7 +156,7 @@ const TopologyCanvas = () => {
     // Read once per build: getComputedStyle on every frame is a forced style
     // recalculation, and the token never changes while the page is live.
     const readAccent = () => {
-      accent = getComputedStyle(canvas).getPropertyValue('--signal').trim() || '#5ae6b0';
+      accent = getComputedStyle(canvas).getPropertyValue('--signal').trim() || '#38bdf8';
     };
 
     const drawBase = () => {

@@ -63,12 +63,17 @@ One skin, dark: a systems console. No light mode.
 | `--text-primary` | `#e8edee` | headings, node names |
 | `--text-body` | `#9fb0b4` | paragraphs |
 | `--text-dim` | `#5d6b6f` | labels only |
-| `--signal` | `#ffb224` | the request |
+| `--signal` | `#38bdf8` | the request |
 
 **Accent discipline.** `--signal` belongs to the request. It appears on the active chapter
 marker, the availability dot, the technologies the visible project actually uses, one number
 per section, and the event arrow in the e-commerce figure. Nowhere else. Budget: about 2% of
 pixels.
+
+It is a cool signal on a cool page, which is the current skin: the page ground is already
+blue-leaning, so the accent carries by chroma and brightness rather than by temperature. On
+`--bg` it clears 9.1:1, and `--bg` on it clears the same, which is what the solid button's
+hover depends on.
 
 `--text-dim` is 11px labels only. It does not clear 4.5:1 against `--bg-raised`, so it must
 never carry a sentence.

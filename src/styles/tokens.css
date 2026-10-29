@@ -50,8 +50,8 @@
   --text-primary: #e8edee;
   --text-body: #9fb0b4;
   --text-dim: #5d6b6f;
-  --signal: #ffb224;
-  --signal-soft: rgba(255, 178, 36, 0.12);
+  --signal: #38bdf8;
+  --signal-soft: rgba(56, 189, 248, 0.14);
 
   /* -- surfaces ------------------------------------------------------------ */
   --surface: var(--bg-raised);

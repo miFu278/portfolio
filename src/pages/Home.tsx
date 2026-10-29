@@ -13,7 +13,7 @@ import Response from '../features/response/components/Response';
 import { useLoadProgress } from '../hooks/useLoadProgress';
 import { useScrollMotion } from '../hooks/useScrollMotion';
 import { useSmoothScroll } from '../hooks/useSmoothScroll';
-import portrait from '../assets/mp.jpg';
+import portrait from '../assets/mp-chibi.jpg';
 
 /**
  * Routing shell. Maps a URL to a composition of feature sections and owns

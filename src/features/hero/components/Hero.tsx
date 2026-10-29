@@ -2,7 +2,7 @@ import { PROFILE, chapter } from '../../../config/content';
 import { useClock } from '../../../hooks/useClock';
 import Reveal from '../../../components/ui/Reveal';
 import TopologyCanvas from '../../../components/layout/TopologyCanvas';
-import portrait from '../../../assets/mp.jpg';
+import portrait from '../../../assets/mp-chibi.jpg';
 import resumePdf from '../../../assets/ttmp_cv.pdf';
 
 const HERO = chapter('ingress');
