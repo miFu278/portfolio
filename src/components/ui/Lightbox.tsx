@@ -170,7 +170,7 @@ const Lightbox = ({ open, src, alt, from = null, onClose }: LightboxProps) => {
         onPointerCancel={endDrag}
       >
         <img
-          src={src}
+          src={src || undefined}
           alt={alt}
           draggable={false}
           style={{ transform: `translate(${pos.x}px, ${pos.y}px) scale(${scale})` }}
