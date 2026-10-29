@@ -39,6 +39,7 @@ export const useScrollMotion = () => {
       gsap.registerPlugin(ScrollTrigger);
 
       const media = gsap.matchMedia();
+      let startHero = () => {};
 
       const ctx = gsap.context(() => {
         // 1 · hero name, word by word
@@ -55,14 +56,22 @@ export const useScrollMotion = () => {
           });
           heading.dataset.split = 'true';
 
-          gsap.from(heading.querySelectorAll('.word'), {
-            yPercent: 110,
-            opacity: 0,
-            duration: 0.9,
-            ease: 'power3.out',
-            stagger: 0.075,
-            delay: 0.2,
-          });
+          // The loader owns the first paint. The name rises as the curtain
+          // leaves, not behind it; if that event never arrives the words are
+          // already in place and simply stay there.
+          startHero = () => {
+            gsap.from(heading.querySelectorAll('.word'), {
+              yPercent: 110,
+              opacity: 0,
+              duration: 0.9,
+              ease: 'power3.out',
+              stagger: 0.075,
+              delay: 0.15,
+            });
+          };
+
+          if (document.documentElement.dataset.loaded === 'true') startHero();
+          else window.addEventListener('app:loaded', startHero, { once: true });
         }
 
         // 2 · chapter titles, scrubbed. Transform only: Reveal already owns the
@@ -233,6 +242,7 @@ export const useScrollMotion = () => {
       });
 
       revert = () => {
+        window.removeEventListener('app:loaded', startHero);
         media.revert();
         ctx.revert();
       };

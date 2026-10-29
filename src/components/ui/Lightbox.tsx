@@ -4,6 +4,8 @@ interface LightboxProps {
   open: boolean;
   src: string;
   alt: string;
+  /** The card figure that opened it, in viewport coordinates. */
+  from?: DOMRect | null;
   onClose: () => void;
 }
 
@@ -19,7 +21,7 @@ const clamp = (v: number) => Math.min(MAX, Math.max(MIN, Math.round(v * 100) / 1
  * hatch. Built on <dialog> so focus trapping, ::backdrop and Esc come from the
  * platform instead of being re-implemented.
  */
-const Lightbox = ({ open, src, alt, onClose }: LightboxProps) => {
+const Lightbox = ({ open, src, alt, from = null, onClose }: LightboxProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [scale, setScale] = useState(1);
   const [pos, setPos] = useState({ x: 0, y: 0 });
@@ -56,6 +58,41 @@ const Lightbox = ({ open, src, alt, onClose }: LightboxProps) => {
       document.body.style.overflow = '';
     };
   }, [open, reset]);
+
+  // The figure the reader clicked expands into the viewer rather than the sheet
+  // appearing over it: the raster is placed back on the card's rect for one
+  // frame, then released, and the transition carries it to its own box.
+  useEffect(() => {
+    if (!open || !from) return;
+    const el = dialogRef.current;
+    const img = el?.querySelector('img');
+    if (!el || !img) return;
+
+    const frame = requestAnimationFrame(() => {
+      const box = img.getBoundingClientRect();
+      if (box.width === 0 || box.height === 0) return;
+
+      const scale = from.width / box.width;
+      const dx = from.left + from.width / 2 - (box.left + box.width / 2);
+      const dy = from.top + from.height / 2 - (box.top + box.height / 2);
+
+      img.dataset.flip = 'true';
+      img.style.transition = 'none';
+      img.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) scale(${scale.toFixed(3)})`;
+      void img.offsetWidth;
+      img.style.transition = 'transform 420ms var(--ease-out)';
+      img.style.transform = '';
+
+      const end = () => {
+        delete img.dataset.flip;
+        img.style.transition = '';
+        img.removeEventListener('transitionend', end);
+      };
+      img.addEventListener('transitionend', end);
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [open, from]);
 
   // wheel zoom, and +/- from the keyboard
   useEffect(() => {

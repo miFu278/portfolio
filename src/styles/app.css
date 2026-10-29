@@ -79,11 +79,13 @@
   display: grid;
   grid-template-rows: 1fr auto;
   padding: var(--gutter);
-  transition: opacity 500ms var(--ease-out), visibility 500ms;
+  /* A curtain, not a fade: the page is already behind it, and the hero starts
+     its entrance on the same beat. */
+  transition: transform 700ms var(--ease-inout), visibility 0s linear 700ms;
 }
 
 .loader[data-done='true'] {
-  opacity: 0;
+  transform: translateY(-100%);
   visibility: hidden;
   pointer-events: none;
 }
@@ -859,6 +861,66 @@
   transform: translate3d(var(--services-x, 0px), 0, 0) skewY(var(--scroll-skew, 0deg));
 }
 
+/* ==================================================================== cursor */
+
+/* The ring trails the real cursor. It is invisible until the hook has drawn a
+   frame and the page has finished loading, and the native cursor is only hidden
+   once that flag is set: a touch screen, reduced motion or a failed script all
+   leave the pointer the page shipped with. Inputs and dialogs take a real
+   cursor back, because a ring cannot show a caret or a grab hand. */
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--d-ui) var(--ease-out);
+}
+
+.cursor i {
+  display: block;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border: 1px solid var(--line-hot);
+  border-radius: var(--r-full);
+  transition: transform var(--d-micro) var(--ease-out), border-color var(--d-micro) var(--ease-out),
+    background-color var(--d-micro) var(--ease-out);
+}
+
+html[data-cursor='on'] body {
+  cursor: none;
+}
+
+html[data-cursor='on'] .cursor {
+  opacity: 1;
+}
+
+html[data-cursor='on'] :is(input, textarea, select),
+html[data-cursor='on'] dialog {
+  cursor: auto;
+}
+
+.cursor[data-shape='link'] i {
+  transform: scale(1.55);
+  border-color: var(--signal);
+}
+
+.cursor[data-shape='media'] i {
+  transform: scale(2.4);
+  border-color: var(--signal);
+  background: color-mix(in srgb, var(--signal) 12%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor {
+    display: none;
+  }
+}
+
 .project {
   position: relative;
   min-width: 0;
@@ -1166,12 +1228,21 @@
   font-size: var(--fs-mono);
   color: var(--text-body);
   margin-top: var(--sp-6);
-  transition: color var(--d-micro) var(--ease-out), gap var(--d-micro) var(--ease-out);
+  /* The underline is drawn by background-size rather than by text-decoration
+     so it can wipe in from the left, and so it sits under the arrow too. */
+  background-image: linear-gradient(var(--signal), var(--signal));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  transition: color var(--d-micro) var(--ease-out), gap var(--d-micro) var(--ease-out),
+    background-size var(--d-ui) var(--ease-out);
 }
 
-.project__link:hover {
+.project__link:hover,
+.project__link:focus-visible {
   color: var(--signal);
   gap: var(--sp-3);
+  background-size: 100% 1px;
 }
 
 .services__techrow {

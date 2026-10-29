@@ -17,7 +17,9 @@
     "deploy": "wrangler deploy",
     "icons": "powershell -NoProfile -File scripts/make-icons.ps1",
     "shots": "node scripts/shoot.mjs",
-    "scroll": "node scripts/scroll-shots.mjs"
+    "scroll": "node scripts/scroll-shots.mjs",
+    "budget": "node scripts/frame-budget.mjs",
+    "response": "node scripts/scroll-response.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",

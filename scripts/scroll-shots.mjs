@@ -515,9 +515,15 @@ const beat = await cdp.evaluate(`(async () => {
   for (const step of [0, 0.5, 1]) {
     window.scrollTo(0, Math.round(top + step * room));
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-    rows.push({
+    const geometry = {
       x: Number.parseFloat(track.style.getPropertyValue('--services-x')) || 0,
       stageTop: Math.round(stage.getBoundingClientRect().top),
+    };
+    // The active project comes from an IntersectionObserver, which reports a
+    // frame or two after the scroll that moved the slide.
+    await new Promise((r) => setTimeout(r, 220));
+    rows.push({
+      ...geometry,
       tech: [...document.querySelectorAll('.registry .tech[data-active="true"]')]
         .map((t) => t.textContent)
         .join('|'),
@@ -555,6 +561,171 @@ check(
   beat !== null && beat.rows[0].tech !== beat.rows[2].tech && beat.rows[0].tech.length > 0,
   beat === null ? 'stage missing' : `${beat.rows[0].tech} -> ${beat.rows[2].tech}`,
 );
+
+// The pointer layer: the ring, the magnetic pull, the link wipe, and the figure
+// that opens into the viewer. All four are driven through real pointer events,
+// because element.click() and a JS-set class would pass without the input path
+// actually working.
+const pointer = (x, y) =>
+  cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y, button: 'none' });
+
+await cdp.evaluate(`window.scrollTo(0, 0)`);
+await sleep(500);
+await pointer(600, 420);
+await sleep(300);
+
+const layer = await cdp.evaluate(`(() => {
+  const ring = document.querySelector('.cursor');
+  const root = document.documentElement;
+  return {
+    loaded: root.dataset.loaded,
+    flag: root.dataset.cursor,
+    opacity: ring ? getComputedStyle(ring).opacity : 'missing',
+    body: getComputedStyle(document.body).cursor,
+    placed: ring ? ring.style.transform : 'missing',
+  };
+})()`);
+check(
+  'the pointer layer takes over once the page has loaded',
+  layer.loaded === 'true' &&
+    layer.flag === 'on' &&
+    Number.parseFloat(layer.opacity) > 0.9 &&
+    layer.body === 'none' &&
+    layer.placed.includes('translate3d'),
+  `loaded ${layer.loaded}, flag ${layer.flag}, ring opacity ${layer.opacity}, body cursor ${layer.body}, ${layer.placed}`,
+);
+
+const cta = await cdp.evaluate(`(() => {
+  const b = document.querySelector('[data-magnetic]').getBoundingClientRect();
+  return { x: Math.round(b.left + b.width / 2), y: Math.round(b.top + b.height / 2) };
+})()`);
+await pointer(cta.x + 4, cta.y + 2);
+await sleep(250);
+const pulled = await cdp.evaluate(`(() => ({
+  transform: document.querySelector('[data-magnetic]').style.transform,
+  shape: document.querySelector('.cursor').dataset.shape,
+}))()`);
+check(
+  'the marked calls to action lean toward the pointer',
+  pulled.transform.includes('translate3d'),
+  `transform ${pulled.transform || 'none'}`,
+);
+check('the ring names what it is over', pulled.shape === 'link', `shape ${pulled.shape || 'unset'}`);
+
+await pointer(30, 300);
+await sleep(250);
+const released = await cdp.evaluate(
+  `document.querySelector('[data-magnetic]').style.transform === ''`,
+);
+check('the pull releases when the pointer leaves', released, 'transform cleared');
+
+// The repo link on the first slide, at the start of the beat, where it is fully
+// on screen and a real pointer can reach it.
+await cdp.evaluate(`(async () => {
+  document.documentElement.style.scrollBehavior = 'auto';
+  const hold = document.querySelector('.services__pin');
+  window.scrollTo(0, hold.getBoundingClientRect().top + window.scrollY);
+  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+})()`, true);
+await sleep(700);
+const linkBox = await cdp.evaluate(`(() => {
+  const link = [...document.querySelectorAll('.project__link')].find((l) => {
+    const r = l.getBoundingClientRect();
+    return r.top > 0 && r.bottom < window.innerHeight && r.left > 0 && r.right < window.innerWidth;
+  });
+  if (!link) return null;
+  const r = link.getBoundingClientRect();
+  return {
+    x: Math.round(r.left + r.width / 2),
+    y: Math.round(r.top + r.height / 2),
+    image: getComputedStyle(link).backgroundImage.slice(0, 24),
+    size: getComputedStyle(link).backgroundSize,
+  };
+})()`);
+if (linkBox) {
+  await pointer(linkBox.x, linkBox.y);
+  await sleep(450);
+}
+const wipe = await cdp.evaluate(`(() => {
+  const link = [...document.querySelectorAll('.project__link')].find((l) => {
+    const r = l.getBoundingClientRect();
+    return r.top > 0 && r.bottom < window.innerHeight && r.left > 0 && r.right < window.innerWidth;
+  });
+  const under = document.elementFromPoint(${linkBox ? linkBox.x : 0}, ${linkBox ? linkBox.y : 0});
+  return {
+    size: getComputedStyle(link).backgroundSize,
+    hover: link.matches(':hover'),
+    under: under ? under.tagName.toLowerCase() + '.' + String(under.className) : 'none',
+  };
+})()`);
+check(
+  'the repo link wipes an underline in from the left',
+  linkBox !== null &&
+    linkBox.image.includes('linear-gradient') &&
+    linkBox.size === '0% 1px' &&
+    wipe.size === '100% 1px',
+  linkBox === null
+    ? 'no link on screen'
+    : `${linkBox.size} -> ${wipe.size}, hover ${wipe.hover}, under ${wipe.under}`,
+);
+
+// Snapping: a stop just short of a chapter boundary finishes the move, and a
+// stop well inside a chapter is left alone. Driven by wheel events, because a
+// scroll made with window.scrollTo is not a scroll as far as Lenis is aware.
+const gatewayTop = await cdp.evaluate(
+  `Math.round(document.getElementById('gateway').getBoundingClientRect().top + window.scrollY)`,
+);
+
+await cdp.evaluate(`window.scrollTo(0, ${gatewayTop} - 400)`);
+await sleep(300);
+await cdp.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: 700, y: 450, deltaX: 0, deltaY: 120 });
+await sleep(120);
+await cdp.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: 700, y: 450, deltaX: 0, deltaY: 120 });
+await sleep(1500);
+const snapped = await cdp.evaluate(`Math.round(window.scrollY)`);
+
+await cdp.evaluate(`window.scrollTo(0, ${gatewayTop} + 500)`);
+await sleep(300);
+await cdp.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: 700, y: 450, deltaX: 0, deltaY: 120 });
+await sleep(1500);
+const held = await cdp.evaluate(`Math.round(window.scrollY)`);
+
+check(
+  'a stop near a chapter boundary snaps, a stop inside one does not',
+  Math.abs(snapped - gatewayTop) <= 3 && held > gatewayTop + 400,
+  `wheeled to ${snapped} and snapped onto the boundary ${gatewayTop}; stopped inside and held at ${held}`,
+);
+
+// The figure opens into the viewer from the card's own rect.
+await cdp.evaluate(`(async () => {
+  const hold = document.querySelector('.services__pin');
+  window.scrollTo(0, hold.getBoundingClientRect().top + window.scrollY + 40);
+  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  document.querySelector('.services__list .figure').click();
+})()`, true);
+let flip = null;
+for (let i = 0; i < 12; i += 1) {
+  await sleep(40);
+  flip = await cdp.evaluate(`(() => {
+    const dialog = document.querySelector('.lightbox');
+    const img = dialog?.querySelector('img');
+    return {
+      open: !!(dialog && dialog.open),
+      flip: img ? img.dataset.flip === 'true' : false,
+      src: img ? img.currentSrc.split('/').pop() : '',
+    };
+  })()`);
+  if (flip.flip) break;
+}
+check(
+  'the figure opens into the viewer from the card',
+  flip !== null && flip.open && flip.flip,
+  flip === null ? 'no reading' : `dialog open ${flip.open}, flip ${flip.flip}, ${flip.src}`,
+);
+await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', windowsVirtualKeyCode: 27 });
+await sleep(400);
+const closed = await cdp.evaluate(`!document.querySelector('.lightbox').open`);
+check('the viewer closes on Escape', closed, closed ? 'closed' : 'still open');
 
 // The hero recedes with the scroll instead of cutting to chapter 02. Three
 // numbers carry that: the foreground shrinks, it lifts further than the

@@ -3,6 +3,7 @@ import ChapterRail from '../components/layout/ChapterRail';
 import ScrollProgress from '../components/layout/ScrollProgress';
 import Footer from '../components/layout/Footer';
 import Loader from '../components/layout/Loader';
+import Cursor from '../components/ui/Cursor';
 import Hero from '../features/hero/components/Hero';
 import Gateway from '../features/gateway/components/Gateway';
 import Services from '../features/services/components/Services';
@@ -29,6 +30,7 @@ const Home = () => {
         Skip to content
       </a>
       <Loader progress={progress} done={done} />
+      <Cursor />
       <ScrollProgress />
       <Header />
       <ChapterRail />

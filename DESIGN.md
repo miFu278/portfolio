@@ -95,7 +95,9 @@ rail sits outside it and only appears at ≥1360px, where there is margin to hol
   moves says how far away it is or which layer it belongs to.
 - The hero canvas sits on a camera that drifts toward the pointer and gives a little to scroll
   speed. It is clamped inside the 6% margin the camera adds by scaling, so it can never uncover
-  an edge of the hero.
+  an edge of the hero. The graph does not change between resizes, so it is painted once into an
+  offscreen sheet and blitted each frame, and the accent colour is read once per build: reading
+  it with `getComputedStyle` on every frame forced a style recalculation on every frame.
 - `Reveal` fires once and never reverses. Content that vanishes on scroll-up is worse than
   no animation.
 - `prefers-reduced-motion` renders a complete static page: reveals are instant and the canvas
@@ -118,6 +120,37 @@ links are routed through `lenis.scrollTo`, and `html`'s `scroll-behavior` is han
 the lifetime of the hook so the page is never eased twice. Under reduced motion the hook does
 not start and the page scrolls natively. Nothing on the page depends on it: it is an easing, not
 a source of content.
+
+It is a fixed fraction per frame, not a duration. A duration gives the wheel an easing curve with
+a long tail, and every scrubbed position on the page then chases that already-eased value.
+Measured after one 400px wheel tick, the page settled in 776ms with a 1.05s duration and in 574ms
+with `lerp: 0.2`, and the point at which 90% of the travel was done moved from 334ms to 208ms.
+The first movement comes 8ms after the wheel event.
+
+### Snap
+
+When the wheel stops within a fifth of a viewport of a chapter boundary, the page finishes the
+move on its own. It only closes a gap in the direction the reader was already going, never pulls
+backwards, and never fires twice for the same boundary, so a position someone chose is not taken
+away from them. A stop well inside a chapter is left exactly where it landed.
+
+### The pointer layer
+
+On a pointer that really hovers, a ring trails the cursor and takes the shape of what it is over,
+and the marked calls to action lean up to 8px toward it. The rect of a magnetic button is taken on
+`pointerenter`, before the pull moves it, or the element chases its own centre.
+
+The native cursor is hidden only after the loader has finished, so a touch screen, reduced motion
+or a script that never ran all leave the page with the pointer it shipped with. Inputs and dialogs
+take a real cursor back, because a ring cannot show a caret or a grab hand.
+
+### Small motions
+
+The repo link wipes its underline in from the left, drawn with `background-size` rather than
+`text-decoration` so it covers the arrow too. The viewer opens from the card: the raster is placed
+back on the figure's rect for one frame, then released, and the transition carries it to its own
+box. The loader leaves as a curtain, and the hero name starts on that handover instead of finishing
+behind it.
 
 ### Velocity layer
 

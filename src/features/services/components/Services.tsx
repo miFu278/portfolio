@@ -81,7 +81,7 @@ const ProjectBlock = ({
   project: Project;
   total: number;
   register: (el: HTMLElement | null) => void;
-  onZoom: (project: Project) => void;
+  onZoom: (project: Project, from: DOMRect) => void;
 }) => {
   const diagram = project.diagram ? DIAGRAMS[project.diagram] : undefined;
 
@@ -103,7 +103,8 @@ const ProjectBlock = ({
             <button
               type="button"
               className="figure"
-              onClick={() => onZoom(project)}
+              data-cursor="media"
+              onClick={(event) => onZoom(project, event.currentTarget.getBoundingClientRect())}
               aria-label={`Open ${project.title} architecture full screen`}
             >
               <img
@@ -146,7 +147,7 @@ const ProjectBlock = ({
 const Services = () => {
   const { activeId, register } = useActiveProject(PROJECT_IDS);
   const activeProject = PROJECTS.find((p) => p.id === activeId);
-  const [zoom, setZoom] = useState<{ src: string; alt: string } | null>(null);
+  const [zoom, setZoom] = useState<{ src: string; alt: string; from: DOMRect } | null>(null);
 
   return (
     <section id={SERVICES.id} className="chapter">
@@ -166,10 +167,10 @@ const Services = () => {
                     project={project}
                     total={PROJECTS.length}
                     register={register(project.id)}
-                    onZoom={(p) =>
+                    onZoom={(p, from) =>
                       setZoom(
                         p.diagram
-                          ? { src: DIAGRAMS[p.diagram].src, alt: `${p.title} architecture` }
+                          ? { src: DIAGRAMS[p.diagram].src, alt: `${p.title} architecture`, from }
                           : null,
                       )
                     }
@@ -187,6 +188,7 @@ const Services = () => {
         open={zoom !== null}
         src={zoom?.src ?? ''}
         alt={zoom?.alt ?? ''}
+        from={zoom?.from ?? null}
         onClose={() => setZoom(null)}
       />
     </section>

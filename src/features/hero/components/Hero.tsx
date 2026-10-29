@@ -41,10 +41,10 @@ const Hero = () => {
             </Reveal>
 
             <Reveal delay={240} className="hero__actions">
-              <a className="btn btn--solid" href={`#${SERVICES.id}`}>
+              <a className="btn btn--solid" href={`#${SERVICES.id}`} data-magnetic>
                 Follow the request ↓
               </a>
-              <a className="btn btn--ghost" href={`#${RESPONSE.id}`}>
+              <a className="btn btn--ghost" href={`#${RESPONSE.id}`} data-magnetic>
                 Send a request
               </a>
               <a
@@ -52,6 +52,7 @@ const Hero = () => {
                 href={resumePdf}
                 target="_blank"
                 rel="noopener noreferrer"
+                data-magnetic
               >
                 Résumé ↗
               </a>

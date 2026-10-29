@@ -29,6 +29,8 @@ pnpm deploy      # wrangler deploy
 pnpm icons       # regenerate the favicon set from src/assets/mp-chibi.jpg
 pnpm shots       # full-page screenshots via Chrome DevTools Protocol → screenshots/
 pnpm scroll      # scroll-pass checks + screenshots → screenshots/scroll/
+pnpm budget      # frame budget and glide tail while scrolling
+pnpm response    # wheel-to-movement curve
 ```
 
 ## Structure

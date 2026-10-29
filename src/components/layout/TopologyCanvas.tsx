@@ -115,24 +115,52 @@ const TopologyCanvas = () => {
           route.push(bestIdx);
         }
       }
+
+      bake();
+      readAccent();
+    };
+
+    // The graph is static between resizes, so it is painted once into an
+    // offscreen sheet and blitted each frame. Redrawing every edge and node per
+    // frame was the largest single frame cost on the page.
+    let sheet: HTMLCanvasElement | null = null;
+    let accent = '#5ae6b0';
+
+    const bake = () => {
+      const next = document.createElement('canvas');
+      next.width = Math.round(width * dpr);
+      next.height = Math.round(height * dpr);
+      const paint = next.getContext('2d');
+      if (!paint) return;
+      paint.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      paint.strokeStyle = 'rgba(255,255,255,0.055)';
+      paint.lineWidth = 1;
+      paint.beginPath();
+      edges.forEach(({ a, b }) => {
+        paint.moveTo(nodes[a].x, nodes[a].y);
+        paint.lineTo(nodes[b].x, nodes[b].y);
+      });
+      paint.stroke();
+
+      nodes.forEach((n) => {
+        paint.beginPath();
+        paint.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        paint.fillStyle = 'rgba(255,255,255,0.32)';
+        paint.fill();
+      });
+
+      sheet = next;
+    };
+
+    // Read once per build: getComputedStyle on every frame is a forced style
+    // recalculation, and the token never changes while the page is live.
+    const readAccent = () => {
+      accent = getComputedStyle(canvas).getPropertyValue('--signal').trim() || '#5ae6b0';
     };
 
     const drawBase = () => {
-      ctx.strokeStyle = 'rgba(255,255,255,0.055)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      edges.forEach(({ a, b }) => {
-        ctx.moveTo(nodes[a].x, nodes[a].y);
-        ctx.lineTo(nodes[b].x, nodes[b].y);
-      });
-      ctx.stroke();
-
-      nodes.forEach((n) => {
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,255,255,0.32)';
-        ctx.fill();
-      });
+      if (sheet) ctx.drawImage(sheet, 0, 0, width, height);
     };
 
     /** 0 → 1 across the hero's own scroll range. */
@@ -159,8 +187,6 @@ const TopologyCanvas = () => {
       const ease = local * local * (3 - 2 * local);
       const x = from.x + (to.x - from.x) * ease;
       const y = from.y + (to.y - from.y) * ease;
-
-      const accent = getComputedStyle(canvas).getPropertyValue('--signal').trim() || '#5ae6b0';
 
       // trail
       const grad = ctx.createLinearGradient(
