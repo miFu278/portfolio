@@ -546,29 +546,30 @@
 
 .role__word {
   position: relative;
-  z-index: 1;
   display: inline-block;
   white-space: nowrap;
 }
 
-.role__word--out {
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* The word that arrives does so at once; only the one leaving is animated. It
-   dissolves left to right a character at a time, behind the new word, so the
-   line is readable the whole way through the swap. */
+/* Leaving: the characters dissolve in reading order. The per-character delay is
+   set on the element, so every word finishes before the line reflows. */
 .role__char {
   display: inline-block;
 }
 
-.role__word--out .role__char {
-  animation: roleCharOut 300ms var(--ease-out) both;
-  animation-delay: calc(var(--i, 0) * 24ms);
+.role__word.is-leaving .role__char {
+  animation: roleCharOut 320ms var(--ease-out) both;
+}
+
+/* Arriving: one fade with no direction to it, all at once. It starts when the
+   word takes the line, which is the same moment the tail starts to rise. */
+.role__word.is-arriving {
+  animation: roleAppear 620ms var(--ease-out) both;
+}
+
+@keyframes roleAppear {
+  from {
+    opacity: 0;
+  }
 }
 
 @keyframes roleCharOut {
@@ -577,7 +578,9 @@
   }
 }
 
-/* The tail dips out of its own clip and snaps back when the next word lands. */
+/* The tail dips out of its own clip and rises back into place. Slow on purpose:
+   it is the line stepping to the next word, not a cut, and the rise is given
+   more time than the fall so it settles rather than snaps. */
 .role__tail {
   display: inline-block;
   clip-path: inset(-0.6em -0.25em 0 -0.25em);
@@ -591,22 +594,36 @@
 }
 
 .role__tail-in.is-dipping {
-  animation: tailDip 400ms var(--ease-rise) both;
+  animation: tailDip 1400ms var(--ease-rise) both;
 }
 
 @keyframes tailDip {
-  to {
+  0% {
+    transform: translateY(0);
+  }
+
+  /* Out by 784ms, just before the line reflows at 800, then rising for the rest
+     so the rise runs alongside the arriving word's fade. */
+  56% {
     transform: translateY(112%);
+  }
+
+  100% {
+    transform: translateY(0);
   }
 }
 
 /* A typed character. It appears instantly and leaves by fading, so erasing reads
-   as the line dissolving rather than as text being deleted. */
+   as the line dissolving rather than as text being deleted. Once it starts
+   leaving it is taken out of flow, which is what lets the rest of the line and the
+   caret step back with it: a char that still occupied its width would leave the
+   caret standing at the end of a sentence that is no longer there. */
 .hero__gl {
   transition: opacity 200ms var(--ease-out);
 }
 
 .hero__gl.is-out {
+  position: absolute;
   opacity: 0;
 }
 
@@ -629,13 +646,10 @@
     display: none;
   }
 
-  .role__word--out .role__char,
+  .role__word.is-leaving .role__char,
+  .role__word.is-arriving,
   .role__tail-in.is-dipping {
     animation: none;
-  }
-
-  .role__word--out {
-    display: none;
   }
 }
 .hero__lead {

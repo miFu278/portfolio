@@ -1,11 +1,23 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useRotatingIndex } from '../../hooks/useRotatingIndex';
 
-/** How long the word that is leaving stays in the DOM while it dissolves. */
-const EXIT_MS = 620;
+/** The whole swap. The exit and the entrance share it, so nothing overlaps. */
+const SWAP_MS = 1400;
 
-/** How long the tail stays out of its clip before snapping back. */
-const DIP_MS = 400;
+/** When the leaving word is gone and the arriving one takes its place. The tail
+ * is fully out of its clip by then, which is the point: the line only reflows
+ * while the tail is invisible, so it never jumps in front of the reader. */
+const OUT_MS = 800;
+
+/** How long one character takes to fade once its turn comes. */
+const CHAR_MS = 320;
+
+/**
+ * Spreads the characters of the leaving word across the exit window, so a short
+ * word and a long one both finish dissolving exactly when the line reflows.
+ */
+const stagger = (index: number, length: number) =>
+  Math.round((index * (OUT_MS - CHAR_MS)) / Math.max(1, length - 1));
 
 interface RoleSwapProps {
   roles: readonly string[];
@@ -16,52 +28,56 @@ interface RoleSwapProps {
 /**
  * The hero's role: one word that changes, one that does not.
  *
- * Only the leaving animates. The word that goes dissolves left to right, one
- * character at a time, and the word that comes stays behind it rather than
- * appearing on top, so the new word is legible the instant it is there. The tail
- * after it dips out of its own clip, then snaps back when the next word has
- * landed: an exit with a hard return, because a return animation would drag the
- * line back into place a beat after the reader has already read it.
+ * A swap runs in two halves on one clock. For the first 800ms the word on the
+ * line is still the old one, dissolving left to right a character at a time,
+ * while the tail after it dips out of its own clip. That is why the line holds
+ * the old width for the whole exit: the tail cannot move until it is gone.
+ * At 800ms the arriving word takes the line, the reflow happens behind the
+ * hidden tail, and both halves come back together: the word fades up out of
+ * nothing, with no direction to it, and the tail rises into place.
  */
 const RoleSwap = ({ roles, tail, intervalMs = 4200 }: RoleSwapProps) => {
   const active = useRotatingIndex(roles.length, intervalMs);
-  const [leaving, setLeaving] = useState<{ word: string; key: number } | null>(null);
-  const [dipping, setDipping] = useState(false);
+  const [shown, setShown] = useState(roles[0]);
+  const [phase, setPhase] = useState<'idle' | 'out' | 'in'>('idle');
   const previous = useRef(roles[0]);
 
   useEffect(() => {
     const word = roles[active];
     if (word === previous.current) return;
-
-    setLeaving({ word: previous.current, key: Date.now() });
-    setDipping(true);
     previous.current = word;
 
-    const exit = window.setTimeout(() => setLeaving(null), EXIT_MS);
-    const dip = window.setTimeout(() => setDipping(false), DIP_MS);
+    setPhase('out');
+
+    const swap = window.setTimeout(() => {
+      setShown(word);
+      setPhase('in');
+    }, OUT_MS);
+    const rest = window.setTimeout(() => setPhase('idle'), SWAP_MS);
+
     return () => {
-      window.clearTimeout(exit);
-      window.clearTimeout(dip);
+      window.clearTimeout(swap);
+      window.clearTimeout(rest);
     };
   }, [active, roles]);
 
-  const word = roles[active];
+  const wordClass =
+    phase === 'out' ? 'role__word is-leaving' : phase === 'in' ? 'role__word is-arriving' : 'role__word';
 
   return (
     <span className="role">
       <span className="role__accent" aria-hidden="true">
-        {leaving && (
-          <span className="role__word role__word--out" key={leaving.key}>
-            {[...leaving.word].map((char, i) => (
-              <span className="role__char" key={i} style={{ '--i': i } as CSSProperties}>
-                {char}
-              </span>
-            ))}
-          </span>
-        )}
-        <span className="role__word">
-          {[...word].map((char, i) => (
-            <span className="role__char" key={i}>
+        <span className={wordClass} key={shown}>
+          {[...shown].map((char, i) => (
+            <span
+              className="role__char"
+              key={i}
+              style={
+                phase === 'out'
+                  ? ({ animationDelay: `${stagger(i, shown.length)}ms` } as CSSProperties)
+                  : undefined
+              }
+            >
               {char}
             </span>
           ))}
@@ -69,11 +85,11 @@ const RoleSwap = ({ roles, tail, intervalMs = 4200 }: RoleSwapProps) => {
       </span>
 
       <span className="role__tail" aria-hidden="true">
-        <span className={dipping ? 'role__tail-in is-dipping' : 'role__tail-in'}>{tail}</span>
+        <span className={phase === 'idle' ? 'role__tail-in' : 'role__tail-in is-dipping'}>{tail}</span>
       </span>
 
       <span className="sr-only">
-        {word} {tail}
+        {roles[active]} {tail}
       </span>
     </span>
   );

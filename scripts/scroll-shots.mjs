@@ -904,7 +904,7 @@ const heroText = `(() => {
     glyphs: claim.querySelectorAll('.hero__gl').length,
     caret: !!claim.querySelector('.hero__caret'),
     height: Math.round(claim.getBoundingClientRect().height),
-    role: slot ? (slot.querySelector('.role__word:not(.role__word--out)')?.textContent ?? '').trim() : '',
+    role: slot ? (slot.querySelector('.role__word')?.textContent ?? '').trim() : '',
     tail: tail ? tail.textContent.trim() : '',
     // How far the tail's left edge sits from the accent's right edge: the line is
     // flush, so this is the gap and nothing else.
@@ -941,13 +941,18 @@ for (let i = 0; i < 60 && !dipped; i += 1) {
 }
 
 const heroFirst = await cdp.evaluate(heroText);
-// The role turns every 3.4s, so a wait that is a whole number of turns would
+// The role turns every 4.2s, so a wait that is a whole number of turns would
 // sample the same word twice. Six seconds is not.
 await sleep(6000);
 const heroRole = await cdp.evaluate(heroText);
-// A claim line needs its type, hold, dissolve and fade: a little over eleven.
-await sleep(5500);
-const heroSecond = await cdp.evaluate(heroText);
+// A claim line takes about twelve seconds to type, hold, dissolve and fade, and
+// where in that cycle the sampling lands is luck, so wait for it to move rather
+// than for a fixed time.
+let heroSecond = heroFirst;
+for (let i = 0; i < 160 && heroSecond.spoken === heroFirst.spoken; i += 1) {
+  await sleep(100);
+  heroSecond = await cdp.evaluate(heroText);
+}
 
 check(
   'the hero claim types and moves on to the next line',
