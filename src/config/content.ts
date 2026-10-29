@@ -111,7 +111,7 @@ export const PROJECTS: Project[] = [
       { value: 'grounded', label: 'answers' },
     ],
     diagram: 'rag',
-    links: { github: 'https://github.com/miFu278/PRN222_ASM' },
+    links: { github: 'https://github.com/miFu278/RAGChatBot' },
     tech: ['.NET', 'PostgreSQL', 'pgvector', 'Supabase'],
   },
 ];
