@@ -882,35 +882,43 @@
 
 .cursor i {
   display: block;
-  width: 26px;
-  height: 26px;
-  margin: -13px 0 0 -13px;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
   border: 1px solid var(--line-hot);
   border-radius: var(--r-full);
   transition: transform var(--d-micro) var(--ease-out), border-color var(--d-micro) var(--ease-out),
     background-color var(--d-micro) var(--ease-out);
 }
 
-html[data-cursor='on'] body {
+/* The ring replaces the pointer everywhere, including on links and buttons:
+   the reset gives those `cursor: pointer`, and an inherited none loses to any
+   rule of their own, which is how the native pointer kept showing up on the
+   header nav. Fields and the viewer are the two places a real cursor still
+   says something the ring cannot. */
+html[data-cursor='on'] *:not(input, textarea, select, dialog, dialog *) {
   cursor: none;
+}
+
+html[data-cursor='on'] :is(input, textarea, select) {
+  cursor: auto;
+}
+
+html[data-cursor='on'] dialog {
+  cursor: auto;
 }
 
 html[data-cursor='on'] .cursor {
   opacity: 1;
 }
 
-html[data-cursor='on'] :is(input, textarea, select),
-html[data-cursor='on'] dialog {
-  cursor: auto;
-}
-
 .cursor[data-shape='link'] i {
-  transform: scale(1.55);
+  transform: scale(1.5);
   border-color: var(--signal);
 }
 
 .cursor[data-shape='media'] i {
-  transform: scale(2.4);
+  transform: scale(2);
   border-color: var(--signal);
   background: color-mix(in srgb, var(--signal) 12%, transparent);
 }
@@ -1358,9 +1366,10 @@ html[data-cursor='on'] dialog {
     position: sticky;
     top: 0;
     height: 100svh;
-    /* Clearance for the fixed header, on the stage rather than on the card, so
-       the card's own top edge stays visible below it. */
-    padding-top: 88px;
+    /* Clearance for the fixed header on top, and the same room again at the
+       bottom: with none, the card's bottom edge lands exactly on the fold and
+       reads as cut off rather than as a slide. */
+    padding: 88px 0 32px;
     overflow: hidden;
   }
 

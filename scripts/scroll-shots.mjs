@@ -645,6 +645,41 @@ check(
   `transform ${pulled.transform || 'none'}`,
 );
 check('the ring names what it is over', pulled.shape === 'link', `shape ${pulled.shape || 'unset'}`);
+await pointer(cta.x + 4, cta.y + 2);
+await sleep(300);
+await shot(cdp, 'g-cursor-link');
+
+// The ring has to replace the pointer on every interactive element, not just on
+// plain text: links and buttons carry their own cursor rule from the reset, so an
+// inherited none is not enough.
+const cursors = await cdp.evaluate(`(() => {
+  const read = (sel) => {
+    const el = document.querySelector(sel);
+    return el ? getComputedStyle(el).cursor : 'missing';
+  };
+  return {
+    flag: document.documentElement.dataset.cursor,
+    body: getComputedStyle(document.body).cursor,
+    nav: read('.header__nav a'),
+    brand: read('.header__brand'),
+    button: read('[data-magnetic]'),
+    figure: read('.figure'),
+    field: read('input'),
+    stage: read('.lightbox__stage'),
+  };
+})()`);
+check(
+  'the ring replaces the pointer on links and buttons too',
+  cursors.flag === 'on' &&
+    cursors.body === 'none' &&
+    cursors.nav === 'none' &&
+    cursors.brand === 'none' &&
+    cursors.button === 'none' &&
+    cursors.figure === 'none' &&
+    cursors.field === 'auto' &&
+    cursors.stage === 'grab',
+  `body ${cursors.body}, nav ${cursors.nav}, brand ${cursors.brand}, cta ${cursors.button}, figure ${cursors.figure}, field ${cursors.field}, viewer ${cursors.stage}`,
+);
 
 await pointer(30, 300);
 await sleep(250);
