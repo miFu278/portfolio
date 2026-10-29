@@ -1,0 +1,1912 @@
+/* ============================================================================
+   APP — layout + components. Reads tokens only.
+   ========================================================================= */
+
+/* =================================================================== buttons */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.8rem 1.4rem;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  transition: background-color var(--d-micro) var(--ease-out),
+    color var(--d-micro) var(--ease-out), border-color var(--d-micro) var(--ease-out),
+    transform var(--d-micro) var(--ease-out);
+  white-space: nowrap;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn--solid {
+  background: var(--text-primary);
+  color: var(--bg);
+}
+
+.btn--solid:hover {
+  background: var(--signal);
+  color: var(--bg);
+}
+
+.btn--ghost {
+  border-color: var(--line-hot);
+  color: var(--text-primary);
+}
+
+.btn--ghost:hover {
+  border-color: var(--signal);
+  color: var(--signal);
+}
+
+.btn--quiet {
+  color: var(--text-dim);
+  padding-inline: 0;
+}
+
+.btn--quiet:hover {
+  color: var(--text-primary);
+}
+
+.btn--full {
+  width: 100%;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ==================================================================== loader */
+
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--bg);
+  display: grid;
+  grid-template-rows: 1fr auto;
+  padding: var(--gutter);
+  /* A curtain, not a fade: the page is already behind it, and the hero starts
+     its entrance on the same beat. */
+  transition: transform 700ms var(--ease-inout), visibility 0s linear 700ms;
+}
+
+.loader[data-done='true'] {
+  transform: translateY(-100%);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.loader__word {
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-dim);
+}
+
+.loader__bar {
+  height: 1px;
+  background: var(--line);
+  position: relative;
+  overflow: hidden;
+}
+
+.loader__bar span {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  background: var(--signal);
+  transition: width 220ms linear;
+}
+
+.loader__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-4);
+  margin-top: var(--sp-4);
+}
+
+.loader__count {
+  font-family: var(--font-mono);
+  font-size: var(--fs-display-m);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* ==================================================================== header */
+
+.header {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 40;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--d-ui) var(--ease-out);
+}
+
+.header[data-stuck='true'] {
+  border-bottom-color: var(--line);
+}
+
+.header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-6);
+  height: 64px;
+}
+
+.header__brand {
+  font-family: var(--font-mono);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.header__brand b {
+  color: var(--signal);
+  font-weight: 500;
+}
+
+.header__nav {
+  display: none;
+  gap: var(--sp-6);
+  align-items: center;
+}
+
+.header__nav a {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  color: var(--text-dim);
+  transition: color var(--d-micro) var(--ease-out);
+  position: relative;
+}
+
+.header__nav a:hover {
+  color: var(--text-primary);
+}
+
+.header__nav a[data-active='true'] {
+  color: var(--text-primary);
+}
+
+.header__nav a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  height: 1px;
+  width: 0;
+  background: var(--signal);
+  transition: width var(--d-ui) var(--ease-out);
+}
+
+.header__nav a:hover::after {
+  width: 100%;
+}
+
+.header__nav a[data-active='true']::after {
+  width: 100%;
+}
+
+.header__meta {
+  display: none;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  color: var(--text-dim);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-full);
+  background: var(--signal);
+  animation: pulse 2.4s var(--ease-inout) infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--signal-soft);
+  }
+  50% {
+    box-shadow: 0 0 0 5px transparent;
+  }
+}
+
+/* The chapter readout, mobile and tablet only. A long page gives no sense of
+   position on a phone: the rail is fixed to the desktop margin and the chapter
+   menu is closed. It fades in on change rather than swapping, so a chapter
+   boundary reads as a beat instead of a glitch. */
+.header__now {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  white-space: nowrap;
+  animation: headerNow var(--d-ui) var(--ease-out) both;
+}
+
+.header__now b {
+  font-weight: 400;
+  color: var(--signal);
+}
+
+@keyframes headerNow {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+
+@media (min-width: 900px) {
+  .header__now {
+    display: none;
+  }
+}
+
+.header__burger {
+  display: grid;
+  gap: 5px;
+  padding: 8px;
+  margin-right: -8px;
+}
+
+.header__burger span {
+  display: block;
+  width: 20px;
+  height: 1.5px;
+  background: var(--text-primary);
+}
+
+.header__menu {
+  display: grid;
+  gap: var(--sp-1);
+  padding: var(--sp-6) var(--gutter) var(--sp-8);
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.header__menu a {
+  font-family: var(--font-mono);
+  font-size: 1.125rem;
+  color: var(--text-body);
+  padding-block: var(--sp-3);
+  display: flex;
+  gap: var(--sp-4);
+  align-items: baseline;
+  border-bottom: 1px solid var(--line);
+}
+
+.header__menu a span {
+  font-size: var(--fs-label);
+  color: var(--text-dim);
+}
+
+@media (min-width: 900px) {
+  .header__nav,
+  .header__meta {
+    display: flex;
+  }
+
+  .header__burger,
+  .header__menu {
+    display: none;
+  }
+}
+
+/* =============================================================== chapter rail */
+
+.rail {
+  position: fixed;
+  left: max(12px, calc((100vw - var(--w-content)) / 2 - 56px));
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 30;
+  display: none;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+/* The spine. The markers become stubs off one line rather than six unrelated
+   dashes, so the rail reads as the path the request takes. */
+.rail::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--line) 5%,
+    var(--line) 95%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+.rail a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  transition: color var(--d-micro) var(--ease-out);
+}
+
+.rail a i {
+  width: 12px;
+  height: 1px;
+  background: currentColor;
+  transition: width var(--d-ui) var(--ease-out), background-color var(--d-ui) var(--ease-out);
+}
+
+.rail a b {
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  transition: color var(--d-ui) var(--ease-out);
+}
+
+/* The label is a hover affordance, not permanent furniture: it would run into
+   the headline at any viewport narrower than ~1700px. */
+.rail a span {
+  position: absolute;
+  left: 100%;
+  margin-left: 8px;
+  padding: 4px 8px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-4px);
+  pointer-events: none;
+  transition: opacity var(--d-ui) var(--ease-out), transform var(--d-ui) var(--ease-out);
+}
+
+.rail a:hover span {
+  opacity: 1;
+  transform: none;
+}
+
+.rail a[data-active='true'] {
+  color: var(--signal);
+}
+
+.rail a[data-active='true'] i {
+  width: 22px;
+  background: var(--signal);
+}
+
+@media (min-width: 1360px) {
+  .rail {
+    display: flex;
+  }
+}
+
+/* ================================================================ progress bar */
+
+.progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: var(--signal);
+  z-index: 50;
+  width: 0;
+  opacity: 0.8;
+  transition: width 80ms linear;
+}
+
+/* ====================================================================== hero */
+
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  /* Centred, not bottom-aligned: `end` pushed the block to the floor of the
+     viewport and left a dead band at the top on tall screens. */
+  align-items: center;
+  /* Height-aware, all of it. The opening frame is a claim, a role, a lead, the
+     actions and the foot, and on a 720px viewport the fixed rhythm this started
+     with ran the foot off the bottom of the hero, so the page's first screen no
+     longer fitted its own first screen. */
+  padding-top: clamp(64px, 10vh, 96px);
+  padding-bottom: clamp(32px, 7vh, 6rem);
+  overflow: hidden;
+}
+
+.hero__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.32;
+  pointer-events: none;
+}
+
+.hero__grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: var(--sp-8);
+  align-items: end;
+  grid-template-columns: 1fr;
+}
+
+.hero__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  padding-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: var(--sp-8);
+}
+
+.hero__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-body);
+}
+
+/* The claim is machine output in this skin: a shell line, not a headline. It
+   types itself through three lines, so the box is kept two lines tall whatever
+   the current line measures, or the hero under it would breathe on every swap. */
+.hero__claim {
+  font-family: var(--font-mono);
+  font-size: var(--fs-lead);
+  letter-spacing: 0.02em;
+  color: var(--text-body);
+  line-height: 1.5;
+  margin-top: clamp(10px, 1.8vh, var(--sp-6));
+  max-width: 34ch;
+  min-height: 3em;
+}
+
+.hero__claim::before {
+  content: '$ ';
+  color: var(--signal);
+}
+
+.hero__caret {
+  display: inline-block;
+  width: 0.42em;
+  height: 1em;
+  margin-left: 0.14em;
+  vertical-align: -0.16em;
+  background: var(--signal);
+  animation: caretBlink 940ms steps(1, end) infinite;
+}
+
+/* The role is the one line on the page that says what the work is rather than
+   what the page is, and it is split in two: the word that changes is the accent
+   and gets the serif and the colour, the word after it is set in the page face
+   and only gets out of the way. Nothing is pinned: the tail sits in normal flow,
+   so it follows the width of the word in front of it. */
+.hero__role {
+  display: flex;
+  align-items: baseline;
+  margin-top: clamp(10px, 1.8vh, var(--sp-6));
+  font-size: clamp(1.5rem, min(3.4vw, 4.6vh), 2.75rem);
+  line-height: 1.15;
+}
+
+.role {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.26em;
+}
+
+.role__accent {
+  position: relative;
+  display: inline-block;
+  font-family: var(--font-role);
+  font-style: italic;
+  color: var(--signal);
+}
+
+.role__word {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Leaving: the characters dissolve in reading order. The per-character delay is
+   set on the element, so every word finishes before the line reflows. */
+.role__char {
+  display: inline-block;
+}
+
+.role__word.is-leaving .role__char {
+  animation: roleCharOut 320ms var(--ease-out) both;
+}
+
+/* Arriving: one fade with no direction to it, all at once. It starts when the
+   word takes the line, which is the same moment the tail starts to rise. */
+.role__word.is-arriving {
+  animation: roleAppear 620ms var(--ease-out) both;
+}
+
+@keyframes roleAppear {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes roleCharOut {
+  to {
+    opacity: 0;
+  }
+}
+
+/* The tail dips out of its own clip and rises back into place. Slow on purpose:
+   it is the line stepping to the next word, not a cut, and the rise is given
+   more time than the fall so it settles rather than snaps. */
+.role__tail {
+  display: inline-block;
+  clip-path: inset(-0.6em -0.25em 0 -0.25em);
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.role__tail-in {
+  display: inline-block;
+}
+
+.role__tail-in.is-dipping {
+  animation: tailDip 1400ms var(--ease-rise) both;
+}
+
+@keyframes tailDip {
+  0% {
+    transform: translateY(0);
+  }
+
+  /* Out by 784ms, just before the line reflows at 800, then rising for the rest
+     so the rise runs alongside the arriving word's fade. */
+  56% {
+    transform: translateY(112%);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* A typed character. It appears instantly and leaves by fading, so erasing reads
+   as the line dissolving rather than as text being deleted. Once it starts
+   leaving it is taken out of flow, which is what lets the rest of the line and the
+   caret step back with it: a char that still occupied its width would leave the
+   caret standing at the end of a sentence that is no longer there. */
+.hero__gl {
+  transition: opacity 200ms var(--ease-out);
+}
+
+.hero__gl.is-out {
+  position: absolute;
+  opacity: 0;
+}
+
+/* Read by a screen reader, never seen: the typewriter writes half-typed
+   sentences into the DOM, so the full line lives here instead. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__caret {
+    display: none;
+  }
+
+  .role__word.is-leaving .role__char,
+  .role__word.is-arriving,
+  .role__tail-in.is-dipping {
+    animation: none;
+  }
+}
+.hero__lead {
+  margin-top: clamp(10px, 1.8vh, var(--sp-6));
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  line-height: 1.75;
+  max-width: 56ch;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  margin-top: clamp(16px, 3vh, var(--sp-8));
+}
+
+@media (max-width: 640px) {
+  .hero__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero__actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .hero__actions .btn--quiet {
+    justify-content: flex-start;
+    padding-inline: 0;
+  }
+}
+
+.hero__portrait {
+  position: relative;
+  justify-self: start;
+  width: 112px;
+  height: 112px;
+}
+
+.hero__portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+}
+
+/* the portrait is a node in the topology: the outline is its connection */
+.hero__portrait::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-hot);
+  pointer-events: none;
+}
+
+.hero__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-4);
+  margin-top: clamp(16px, 3.2vh, 3.5rem);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+/* Scroll affordance. A 100svh hero reads as a complete screen, so nothing on it
+   says the page continues. */
+.hero__scroll {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(1rem, 3vh, 1.75rem);
+  transform: translateX(-50%);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  transition: color var(--d-ui) var(--ease-out);
+}
+
+.hero__scroll:hover {
+  color: var(--text-primary);
+}
+
+.hero__scroll i {
+  width: 1px;
+  height: 30px;
+  background: linear-gradient(to bottom, var(--signal), transparent);
+  transform-origin: top;
+  animation: heroCue 2.6s var(--ease-inout) infinite;
+}
+
+@keyframes heroCue {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+/* no vertical room for it on short viewports, and it would collide with the foot */
+@media (max-height: 720px) {
+  .hero__scroll {
+    display: none;
+  }
+}
+
+@media (min-width: 860px) {
+  .hero__grid {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .hero__portrait {
+    width: 168px;
+    height: 168px;
+    justify-self: end;
+    align-self: end;
+  }
+}
+
+/* ============================================================== chapter head */
+
+.chapter-head {
+  display: grid;
+  gap: var(--sp-4);
+  margin-bottom: clamp(2.5rem, 6vh, 5rem);
+}
+
+.chapter-head__kicker {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.chapter-head__kicker i {
+  width: 32px;
+  height: 1px;
+  background: var(--signal);
+}
+
+/* The dash grows as the chapter comes into view, so the eye lands on the numeral
+   before the headline finishes revealing. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .chapter-head__kicker i {
+      animation: kickerGrow linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 45%;
+    }
+  }
+}
+
+@keyframes kickerGrow {
+  from {
+    width: 0;
+  }
+  to {
+    width: 32px;
+  }
+}
+
+.chapter-head__title {
+  max-width: 22ch;
+}
+
+/* Masked lines. splitLines wraps every rendered line in a `.line` box and moves
+   its text into `.line__in`, so the entrance raises the line from behind its own
+   box instead of fading it. The clip keeps its bottom edge flush and gives back
+   the top and sides, so ascenders and descenders are never cut and the box is
+   exactly the line box it replaced. */
+.line {
+  display: block;
+  clip-path: inset(-0.6em -0.25em 0 -0.25em);
+}
+
+.line__in {
+  display: block;
+  /* The words are inline-blocks, so a line that exactly fitted as plain text
+     could wrap inside its own mask and be clipped away. */
+  white-space: nowrap;
+  transform: translateY(110%);
+  transition: transform var(--d-reveal) var(--ease-out);
+  transition-delay: calc(var(--reveal-delay, 0ms) + var(--line-i, 0) * 70ms);
+}
+
+[data-shown='true'] .line__in {
+  transform: none;
+}
+
+/* A heading is set rather than slid: the mask stays, and each word rises and
+   fades up inside it on its own beat. */
+[data-split='words'] .line__in {
+  transform: none;
+}
+
+[data-split='words'] .line__w {
+  display: inline-block;
+  transform: translateY(110%);
+  opacity: 0;
+  transition: transform var(--d-reveal) var(--ease-out), opacity 360ms var(--ease-out);
+  transition-delay: calc(
+    var(--reveal-delay, 0ms) + var(--line-i, 0) * 70ms + var(--word-i, 0) * 26ms
+  );
+}
+
+[data-shown='true'][data-split='words'] .line__w {
+  transform: none;
+  opacity: 1;
+}
+
+/* Typed. Characters take their place in reading order and nothing moves, which
+   is what separates a typewriter from a fade. The caret blinks while the line is
+   being typed and retires on its own once the last character has landed. */
+[data-split='type'] .line__in {
+  transform: none;
+}
+
+[data-split='type'] .line__c {
+  opacity: 0;
+  transition: opacity 90ms linear;
+  transition-delay: calc(var(--reveal-delay, 0ms) + var(--char-i, 0) * 18ms);
+}
+
+[data-shown='true'][data-split='type'] .line__c {
+  opacity: 1;
+}
+
+.type-caret {
+  display: inline-block;
+  width: 0.07em;
+  height: 0.78em;
+  margin-left: 0.06em;
+  vertical-align: -0.02em;
+  background: var(--signal);
+  opacity: 0;
+}
+
+[data-shown='true'] .type-caret {
+  animation:
+    caretBlink 560ms steps(1, end) infinite,
+    caretRetire 1ms linear forwards;
+  animation-delay:
+    var(--reveal-delay, 0ms),
+    calc(var(--reveal-delay, 0ms) + var(--type-ms, 1400ms));
+}
+
+@keyframes caretBlink {
+  0%,
+  49.99% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes caretRetire {
+  to {
+    opacity: 0;
+  }
+}
+
+/* GSAP owns the transform of every scrubbed element: it moves them with the
+   scroll. The reveal's 750ms transform transition would make the scrub chase
+   the scroll instead of following it, so these transition opacity only. */
+.chapter-head__kicker,
+.chapter-head__title {
+  transition-property: opacity;
+}
+
+/* The figure is scrubbed, so it cannot transition transform either. */
+.project__diagram {
+  transition-property: opacity;
+}
+
+/* The wipe lives on the button inside the frame, not on the frame itself: an
+   element clipped away to nothing never reports itself as intersecting, so a
+   mask on the observed element would never open. The raster settles from a
+   slight over-scale as the wipe passes. */
+.figure {
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path var(--d-chapter) var(--ease-out) var(--reveal-delay, 0ms);
+}
+
+[data-shown='true'] .figure {
+  clip-path: inset(0 0 0 0);
+}
+
+.figure img {
+  transform: scale(1.06);
+  transition: transform var(--d-chapter) var(--ease-out);
+}
+
+[data-shown='true'] .figure img {
+  transform: none;
+}
+
+/* =================================================================== gateway */
+
+.gateway__grid {
+  display: grid;
+  gap: clamp(2rem, 5vw, 4rem);
+}
+
+.gateway__manifesto {
+  display: grid;
+  gap: var(--sp-4);
+  align-content: start;
+}
+
+.gateway__manifesto li {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  gap: var(--sp-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-lead);
+  color: var(--text-primary);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--line);
+}
+
+.gateway__manifesto li span:first-child {
+  color: var(--text-dim);
+  font-size: var(--fs-mono);
+  padding-top: 0.35em;
+}
+
+.gateway__routes {
+  display: grid;
+  gap: var(--sp-6);
+  margin-top: clamp(2.5rem, 6vh, 4rem);
+}
+
+.route {
+  padding: var(--surface-pad);
+  background: var(--surface);
+  border: var(--surface-border);
+  border-radius: var(--radius);
+  transition: border-color var(--d-ui) var(--ease-out);
+}
+
+.route:hover {
+  border-color: var(--line-hot);
+}
+
+.route__path {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--signal);
+}
+
+.route h3 {
+  font-family: var(--font-mono);
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-block: var(--sp-3);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+@media (min-width: 900px) {
+  .gateway__grid {
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .gateway__routes {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-8);
+  }
+}
+
+/* ================================================================== services */
+
+.services__split {
+  display: grid;
+  gap: clamp(2rem, 5vw, 4rem);
+}
+
+.services__list {
+  display: grid;
+  gap: clamp(3rem, 8vh, 5rem);
+  /* grid items default to min-width:auto, so the 840-wide drawing inside a
+     card would stretch the track and push the card under the registry. */
+  min-width: 0;
+  /* Two scroll-driven values, one composed transform, so neither can overwrite
+     the other: --services-x is the sideways travel written by the pin in
+     useScrollMotion, --scroll-skew is the velocity layer written by
+     useSmoothScroll. Both sit at 0 when their hook is off, so reduced motion
+     and a failed script both leave the cards square and unmoved. */
+  transform: translate3d(var(--services-x, 0px), 0, 0) skewY(var(--scroll-skew, 0deg));
+}
+
+/* The seam. The first chapter does not simply scroll away: the second opens out
+   of a vertical slit at the centre and widens as it rises, so the boundary reads
+   as a door rather than as a hand-off. The inset is written by useScrollMotion
+   and defaults to open, which is what reduced motion, a failed script and every
+   frame before the first write all get. */
+[data-seam] {
+  clip-path: inset(0 var(--seam, 0%) 0 var(--seam, 0%));
+}
+
+/* ==================================================================== cursor */
+
+/* The ring trails the real cursor. It is invisible until the hook has drawn a
+   frame and the page has finished loading, and the native cursor is only hidden
+   once that flag is set: a touch screen, reduced motion or a failed script all
+   leave the pointer the page shipped with. Inputs and dialogs take a real
+   cursor back, because a ring cannot show a caret or a grab hand. */
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--d-ui) var(--ease-out);
+}
+
+.cursor i {
+  display: block;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 1px solid var(--line-hot);
+  border-radius: var(--r-full);
+  transition: transform var(--d-micro) var(--ease-out), border-color var(--d-micro) var(--ease-out),
+    background-color var(--d-micro) var(--ease-out);
+}
+
+/* The ring replaces the pointer everywhere, including on links and buttons:
+   the reset gives those `cursor: pointer`, and an inherited none loses to any
+   rule of their own, which is how the native pointer kept showing up on the
+   header nav. Fields and the viewer are the two places a real cursor still
+   says something the ring cannot. */
+html[data-cursor='on'] *:not(input, textarea, select, dialog, dialog *) {
+  cursor: none;
+}
+
+html[data-cursor='on'] :is(input, textarea, select) {
+  cursor: auto;
+}
+
+html[data-cursor='on'] dialog {
+  cursor: auto;
+}
+
+html[data-cursor='on'] .cursor {
+  opacity: 1;
+}
+
+.cursor[data-shape='link'] i {
+  transform: scale(1.5);
+  border-color: var(--signal);
+}
+
+.cursor[data-shape='media'] i {
+  transform: scale(2);
+  border-color: var(--signal);
+  background: color-mix(in srgb, var(--signal) 12%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor {
+    display: none;
+  }
+}
+
+.project {
+  position: relative;
+  min-width: 0;
+  padding: var(--surface-pad);
+  background: var(--surface);
+  border: var(--surface-border);
+  border-radius: var(--radius);
+  transition: border-color var(--d-ui) var(--ease-out);
+}
+
+.project:hover {
+  border-color: var(--line-hot);
+}
+
+.project__index {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  color: var(--signal);
+}
+
+.project__title {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  margin-top: var(--sp-3);
+}
+
+.project__meta {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  color: var(--text-dim);
+  margin-top: var(--sp-2);
+}
+
+.project__body {
+  margin-top: var(--sp-6);
+}
+
+.project__diagram {
+  margin-top: var(--sp-6);
+  border: var(--surface-border);
+  border-radius: var(--radius);
+  /* the exports carry their own #121212 plate */
+  background: #121212;
+  padding: 0;
+  overflow: hidden;
+}
+
+.project__diagram img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ============================================== figure + full-screen viewer =
+   The rasters are ~1500px wide in a ~680px card, so the figure is unreadable at
+   rest. Clicking opens a dialog with zoom; the hint only appears on hover or
+   keyboard focus, never as permanent furniture.
+   ========================================================================= */
+
+.figure {
+  display: block;
+  position: relative;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+.figure img {
+  transition: opacity var(--d-ui) var(--ease-out);
+}
+
+.figure:hover img,
+.figure:focus-visible img {
+  opacity: 0.76;
+}
+
+.figure__hint {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  padding: 5px 11px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  border: 1px solid var(--line-hot);
+  border-radius: var(--r-full);
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity var(--d-ui) var(--ease-out), transform var(--d-ui) var(--ease-out);
+}
+
+.figure:hover .figure__hint,
+.figure:focus-visible .figure__hint {
+  opacity: 1;
+  transform: none;
+}
+
+/* Touch devices never hover, so the hint would never appear. Show it there. */
+@media (hover: none) {
+  .figure__hint {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: color-mix(in srgb, var(--bg-sunk) 94%, transparent);
+  backdrop-filter: blur(6px);
+  color: var(--text-body);
+  overflow: hidden;
+}
+
+.lightbox::backdrop {
+  background: transparent;
+}
+
+.lightbox__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-3) var(--sp-6);
+  border-bottom: 1px solid var(--line);
+}
+
+/* the native dialog appears instantly; give it a beat */
+.lightbox[open] {
+  animation: lightboxIn 200ms var(--ease-out);
+}
+
+.lightbox[open] .lightbox__bar {
+  animation: lightboxBarIn 260ms var(--ease-out);
+}
+
+@keyframes lightboxIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes lightboxBarIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.lightbox__tools {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.lightbox__tools button {
+  padding: 5px 10px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  color: var(--text-primary);
+  border: 1px solid var(--line-hot);
+  border-radius: var(--r-sm);
+  transition: border-color var(--d-micro) var(--ease-out), color var(--d-micro) var(--ease-out);
+}
+
+.lightbox__tools button:hover {
+  border-color: var(--signal);
+  color: var(--signal);
+}
+
+.lightbox__pct {
+  min-width: 4ch;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.lightbox__stage {
+  position: absolute;
+  inset: 53px 0 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+}
+
+.lightbox__stage:active {
+  cursor: grabbing;
+}
+
+.lightbox__stage img {
+  max-width: 94%;
+  max-height: 88%;
+  transform-origin: center;
+  user-select: none;
+  -webkit-user-drag: none;
+  transition: transform 120ms var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lightbox__stage img {
+    transition: none;
+  }
+}
+
+/* =================================================== diagrams (inline SVG) =
+   The figure is inlined rather than referenced as <img src="…svg">: an
+   img-referenced SVG renders in static mode and cannot load a webfont, so the
+   brand pairing would collapse to system fonts. Inlining keeps Archivo and
+   JetBrains Mono, and lets the drawing read the same tokens as the page.
+   ========================================================================= */
+
+.diagram-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  min-width: 0;
+  /* breathing room so a focus ring on the scroll container is not clipped */
+  padding-bottom: 2px;
+}
+
+.diagram {
+  --dg-ink: var(--text-primary);
+  --dg-muted: var(--text-body);
+  --dg-soft: var(--text-body);
+  --dg-accent: var(--signal);
+  --dg-mask: var(--bg-sunk);
+  --dg-dot: rgba(232, 237, 238, 0.1);
+  --dg-rule: var(--line);
+  --dg-zone-fill: rgba(232, 237, 238, 0.026);
+  --dg-zone-stroke: rgba(232, 237, 238, 0.1);
+  --dg-node-fill: rgba(232, 237, 238, 0.035);
+  --dg-stroke: var(--line);
+  --dg-node-accent: rgba(56, 189, 248, 0.1);
+  --dg-node-cloud: rgba(232, 237, 238, 0.055);
+  --dg-stroke-cloud: rgba(232, 237, 238, 0.3);
+  --dg-node-ext: rgba(159, 176, 180, 0.1);
+  --dg-stroke-ext: rgba(159, 176, 180, 0.5);
+
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Below this the drawing would scale its own labels under 8px, so the wrapper
+   takes over and scrolls the figure on its own axis instead. */
+@media (max-width: 800px) {
+  .diagram {
+    min-width: 760px;
+  }
+}
+
+.project__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
+  margin-top: var(--sp-6);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--line);
+}
+
+.stat__value {
+  font-family: var(--font-mono);
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--signal);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat__label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-dim);
+  margin-top: 6px;
+}
+
+.project__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  color: var(--text-body);
+  margin-top: var(--sp-6);
+  /* The underline is drawn by background-size rather than by text-decoration
+     so it can wipe in from the left, and so it sits under the arrow too. */
+  background-image: linear-gradient(var(--signal), var(--signal));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  transition: color var(--d-micro) var(--ease-out), gap var(--d-micro) var(--ease-out),
+    background-size var(--d-ui) var(--ease-out);
+}
+
+.project__link:hover,
+.project__link:focus-visible {
+  color: var(--signal);
+  gap: var(--sp-3);
+  background-size: 100% 1px;
+}
+
+.services__techrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: var(--sp-4);
+}
+
+.tech {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 6px 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  color: var(--text-body);
+}
+
+/* --- the scroll-linked registry ----------------------------------------- */
+
+.registry {
+  display: none;
+}
+
+.registry__inner {
+  position: sticky;
+  top: 96px;
+  padding: var(--sp-6);
+  border: var(--surface-border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.registry__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: var(--sp-4);
+}
+
+.registry__group + .registry__group {
+  margin-top: var(--sp-4);
+}
+
+.registry__group-title {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: var(--sp-2);
+}
+
+.registry__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* In the registry, a technology is dim until the project using it is on screen:
+   that is the whole point of the panel. */
+.registry .tech {
+  color: var(--text-dim);
+  border-color: var(--line);
+  opacity: 0.4;
+  transition: color var(--d-ui) var(--ease-out), border-color var(--d-ui) var(--ease-out),
+    opacity var(--d-ui) var(--ease-out);
+}
+
+.registry .tech[data-active='true'] {
+  color: var(--text-primary);
+  border-color: var(--signal);
+  opacity: 1;
+}
+
+@media (min-width: 1024px) {
+  .services__split {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+
+  .registry {
+    display: block;
+  }
+
+  .services__list .project {
+    min-height: 58vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+
+/* The pinned stage. One project at a time, never taller than a viewport, and the
+   pair is carried sideways by useScrollMotion so the chapter has a beat instead
+   of being a list. The stage is sticky rather than ScrollTrigger-pinned: a pin
+   spacer is created during a refresh, after the triggers below it have already
+   measured, and every chapter under services then scrubs 736px too early. A
+   wrapper whose height the hook sets has the same effect on the layout, without
+   moving the layout mid-refresh. The figure takes whatever height is left over
+   and the raster is contained inside it, so no viewport height can push the
+   stats and the repo link off the slide. */
+@media (min-width: 1024px) {
+  .services__pin {
+    position: relative;
+  }
+
+  .services__stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    /* Clearance for the fixed header on top, and the same room again at the
+       bottom: with none, the card's bottom edge lands exactly on the fold and
+       reads as cut off rather than as a slide. */
+    padding: 88px 0 32px;
+    overflow: hidden;
+  }
+
+  .services__list {
+    display: flex;
+    gap: 0;
+    width: 100%;
+    /* The track has to be exactly one stage tall, or the slides size to their
+       own content and overrun the viewport instead of letting the figure give
+       way. */
+    height: 100%;
+  }
+
+  .services__list .project {
+    flex: 0 0 100%;
+    height: 100%;
+    min-height: 0;
+    justify-content: flex-start;
+  }
+
+  .project__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .project__diagram,
+  .project__diagram .figure {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .project__diagram img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+/* =================================================================== anomaly */
+
+.anomaly__grid {
+  display: grid;
+  gap: clamp(2.5rem, 6vw, 5rem);
+  align-items: center;
+}
+
+.anomaly__facts {
+  display: grid;
+  gap: 0;
+  margin-top: var(--sp-8);
+  border-top: 1px solid var(--line);
+}
+
+.anomaly__facts div {
+  display: grid;
+  grid-template-columns: 6rem 1fr;
+  gap: var(--sp-4);
+  padding-block: var(--sp-3);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+}
+
+.anomaly__facts dt {
+  color: var(--text-dim);
+  letter-spacing: var(--tracking-label);
+  font-size: var(--fs-label);
+  padding-top: 2px;
+}
+
+.anomaly__facts dd {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.anomaly__plot {
+  border: var(--surface-border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: var(--sp-6);
+  color: var(--text-body);
+}
+
+.anomaly__plot figcaption {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  color: var(--text-dim);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  margin-top: var(--sp-4);
+}
+
+.anomaly__paper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  border: 1px solid var(--signal);
+  color: var(--signal);
+  border-radius: var(--r-full);
+  padding: 5px 12px;
+}
+
+@media (min-width: 960px) {
+  .anomaly__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  }
+}
+
+/* ============================================================= observability */
+
+.trace {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--line);
+}
+
+.trace__row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-2);
+  padding-block: var(--sp-4);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+}
+
+.trace__row--head {
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.trace__time {
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+}
+
+.trace__verb {
+  color: var(--signal);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.trace__text {
+  color: var(--text-body);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  line-height: 1.7;
+  max-width: 78ch;
+}
+
+@media (min-width: 800px) {
+  .trace__row {
+    grid-template-columns: 7.5rem 5rem 1fr;
+    align-items: baseline;
+    gap: var(--sp-4);
+  }
+}
+
+/* ================================================================== response */
+
+.response__grid {
+  display: grid;
+  gap: clamp(2.5rem, 6vw, 5rem);
+}
+
+.response__channels {
+  display: grid;
+  border-top: 1px solid var(--line);
+  margin-top: var(--sp-8);
+}
+
+.channel {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding-block: var(--sp-4);
+  border-bottom: 1px solid var(--line);
+  transition: color var(--d-micro) var(--ease-out), padding-left var(--d-micro) var(--ease-out);
+}
+
+.channel:hover {
+  color: var(--text-primary);
+  padding-left: var(--sp-2);
+}
+
+.channel svg {
+  width: 16px;
+  height: 16px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.channel__label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-dim);
+  width: 5.5rem;
+  flex-shrink: 0;
+}
+
+.channel__value {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  color: var(--text-body);
+}
+
+.missions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-6);
+}
+
+.mission {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-full);
+  color: var(--text-dim);
+  transition: all var(--d-micro) var(--ease-out);
+}
+
+.mission:hover {
+  color: var(--text-primary);
+  border-color: var(--line-hot);
+}
+
+.mission[data-active='true'] {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: var(--bg);
+}
+
+.form {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+.field {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.field label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-dim);
+}
+
+.field input,
+.field textarea {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  color: var(--text-primary);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 10px 0;
+  outline: none;
+  transition: border-color var(--d-micro) var(--ease-out);
+  resize: none;
+  width: 100%;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: var(--text-dim);
+  opacity: 0.7;
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-bottom-color: var(--signal);
+}
+
+.form__status {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  color: var(--text-dim);
+  min-height: 1.4em;
+}
+
+.form__status[data-state='sent'] {
+  color: var(--signal);
+}
+
+.form__status[data-state='failed'] {
+  color: var(--text-primary);
+}
+
+@media (min-width: 960px) {
+  .response__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+/* ==================================================================== footer */
+
+.footer {
+  padding-block: var(--sp-8);
+  border-top: 1px solid var(--line);
+}
+
+.footer__inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+}

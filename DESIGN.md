@@ -1,174 +1,284 @@
-# Design — Than Trinh Minh Phuc Portfolio
+# Design
 
-Reverse-engineered from the current source (single-page React portfolio). Describes what
-exists, not what was intended.
+What this site is and why it is built the way it is. Describes the current code, not an
+intention.
 
 ## 1. Purpose
 
-Personal portfolio for a backend software engineer. Goals, in order of page priority:
+Personal portfolio for a backend engineer. Goals in priority order:
 
-1. Establish identity (name, role, one-line positioning).
-2. Prove depth: real projects, one internship, one paper.
-3. Convert: resume download, GitHub, email contact form.
+1. Establish identity — name, role, one claim.
+2. Prove depth — two running systems, one internship, one paper.
+3. Convert — résumé, GitHub, contact.
 
-Audience: recruiters and hiring engineers screening for backend/.NET/Go + applied-AI work.
+Audience: recruiters and hiring engineers screening for backend / distributed-systems work.
 
-## 2. Stack
+## 2. The organising idea
 
-| Concern | Choice |
-|---|---|
-| Framework | React 19 + TypeScript, strict mode |
-| Build | Vite 7 (`@vitejs/plugin-react`) + React Compiler (Babel plugin) |
-| Styling | Tailwind via **CDN script** in `index.html` + hand-written CSS (`App.css`, `index.css`) |
-| Icons | `lucide-react` (UI), `react-icons/si` (brand/tech logos) |
-| Email | `@emailjs/browser` (`sendForm`, no backend) |
-| Deploy | GitHub Pages at `/portfolio/` via `gh-pages -d dist` |
-| Lint | ESLint 9 flat config, react-hooks + react-refresh |
-
-No router, no state library, no CSS framework build step, no test runner.
-
-## 3. Page structure
-
-`src/App.tsx` composes a fixed render order — this order *is* the design:
+The page is not a list of sections. It is a request travelling through a system, and each
+chapter is a hop:
 
 ```
-PageLoader        (overlay, self-dismissing)
-ScrollProgress    (fixed 1px top bar)
-└─ relative min-h-screen bg-black text-gray-100
-   ├─ fixed inset-0     → Starfield (canvas, z-0)
-   └─ relative z-10
-      ├─ Header          #home #about #experience #projects #research #contact
-      ├─ Hero            #home
-      ├─ About           #about
-      ├─ Experience      #experience
-      ├─ ProjectsAndTech #projects
-      ├─ Research        #research
-      └─ Contact         #contact
+01 INGRESS → 02 GATEWAY → 03 SERVICES → 04 ANOMALY → 05 OBSERVABILITY → 06 RESPONSE
 ```
 
-Every section is `id`-addressable and `scroll-mt-24` so the fixed header does not cover
-anchor targets. The header nav and the section IDs are the only routing mechanism.
+Chapter ids, the `ChapterRail`, the header nav and `config/content.ts` all read from one
+list (`CHAPTERS`), so the metaphor cannot drift between them.
+
+Each chapter title is a sentence with a verb — *"Nothing gets through by accident."*,
+*"Some inputs don't belong here."* Nouns like "About" or "Skills" were deliberately dropped.
+
+## 3. Architecture
+
+Feature-sliced. `config/content.ts` is the content source of truth; `pages/Home.tsx` is a
+routing shell that composes features and owns no logic; each feature exposes one barrel.
+
+```
+content.ts ──→ features/*/components ──→ pages/Home.tsx
+                    ↑
+        components/ui, components/layout, hooks, lib
+```
+
+Rules that keep it honest:
+
+- A feature never imports another feature. Shared code moves down into `components/ui`,
+  `hooks`, `lib` or `utils`.
+- `lib/` is only for third-party boundaries (today: EmailJS). Everything above it speaks
+  `ContactPayload`.
+- No global client state. There is none to manage; adding a store would be dead weight.
 
 ## 4. Visual language
 
-Monochrome terminal aesthetic: black canvas, white ink, gray hierarchy, thin 1px borders
-that brighten to `white/50` on hover. Color is used nowhere; the starfield supplies motion
-and depth instead of accent hue.
+One skin, dark: a systems console. No light mode.
 
-**Tokens (as used in JSX):**
+### Colour
 
-- Background: `#000` (body) — the `#0a0a1a` in `index.html` is overridden by `index.css`.
-- Text: `gray-100` (primary), `gray-300` (body), `gray-400` (secondary/meta), `gray-500` (labels).
-- Surfaces: `bg-white/5`, borders `border-gray-700` → `hover:border-white/50`; glass variants `border-white/10`, `bg-black/30` + `backdrop-blur-md`.
-- Accent/inverted: pure white fill with black text (buttons, active tech pills).
-- Radius: `rounded-xl` (cards/inputs), `rounded-2xl` (nav bar, cards), `rounded-full` (avatar, pills).
-- Type scale: section `h2` `text-3xl → text-5xl`; card `h3` `text-2xl → text-5xl` (desktop project titles are deliberately oversized); body `text-sm → text-lg`; labels `text-xs uppercase tracking-wider`.
-- Responsive: mobile-first, breakpoints `sm / md / lg`; `lg` is also the layout switch (see §7).
-- Fonts: `JetBrains Mono` for the whole body (loaded from Google Fonts, set in `App.css`). `Inter` is referenced in `index.html` inline CSS but never loaded — it resolves to monospace.
-- Motion: `fadeInUp` keyframe (0.8s ease-out, 30px rise) with staggered `animationDelay` (Hero 200/400/600/800ms; tech pills 50ms × index); `transition-colors duration-300` for hovers; `duration-1000` for section reveals.
+| Token | Value | Use |
+|---|---|---|
+| `--bg` | `#0b0d0e` | page |
+| `--bg-raised` | `#14181a` | cards, panels |
+| `--bg-sunk` | `#050708` | figure plates, wells |
+| `--line` | `#212a2d` | hairlines |
+| `--line-hot` | `rgba(232,237,238,.26)` | hover borders |
+| `--text-primary` | `#e8edee` | headings, node names |
+| `--text-body` | `#9fb0b4` | paragraphs |
+| `--text-dim` | `#5d6b6f` | labels only |
+| `--signal` | `#38bdf8` | the request |
 
-Container widths are intentionally inconsistent per section: Hero `max-w-6xl`,
-About/Experience/Research `max-w-5xl`, Projects/Contact `max-w-[1600px]`.
+**Accent discipline.** `--signal` belongs to the request. It appears on the active chapter
+marker, the availability dot, the technologies the visible project actually uses, one number
+per section, and the event arrow in the e-commerce figure. Nowhere else. Budget: about 2% of
+pixels.
 
-## 5. Sections
+It is a cool signal on a cool page, which is the current skin: the page ground is already
+blue-leaning, so the accent carries by chroma and brightness rather than by temperature. On
+`--bg` it clears 9.1:1, and `--bg` on it clears the same, which is what the solid button's
+hover depends on.
 
-**PageLoader** — full-screen black overlay, `miFu` wordmark, simulated progress: 150ms
-interval, random `+15` per tick, fade at 100%, unmount after 500ms. Purely cosmetic.
+`--text-dim` is 11px labels only. It does not clear 4.5:1 against `--bg-raised`, so it must
+never carry a sentence.
 
-**Header** — fixed, blurred, floating pill (`rounded-full`, `border-white/10`) inset with
-`px-6 md:px-12 lg:px-24` + `mt-4`. Left: `miFu` logo → `#home`. Center (desktop):
-6 nav links. Right (desktop): email. Mobile: hamburger toggling a full menu panel.
-Active link is derived from an IntersectionObserver over `section[id]`
-(`rootMargin: -30% 0px -65% 0px`).
+### Type
 
-**Hero** — 10-column grid, text spans 6 (left, desktop) and avatar spans 4 (right).
-On mobile the avatar is ordered first. Contents: gradient-clipped name (`bg-clip-text`,
-`gray-100 → gray-400`), role, one-line pitch, three CTAs (`View Projects` solid,
-`Contact Me` outline, `Resume` outline opening `ttmp_cv.pdf` in a new tab for online viewing), and an animated scroll-down cue.
+Three families, all loaded in `index.html`:
 
-**About** — centered narrative paragraph + two equal cards, "Backend Engineering" and
-"Applied AI Research", rendered by a local `CurrentlyLearningItem` component (named for a
-previous iteration; content is now focus areas).
+- **Archivo** 400–700 — display and body.
+- **JetBrains Mono** 400/500 — technical content only: labels, meta, timestamps, node names,
+  arrow labels. Never used as a blanket "dev" font for prose.
+- **Instrument Serif** italic — one line on the page, the hero's role. It is a voice, not a
+  scale step, which is why a third face earns its download.
 
-**Experience** — single entry, non-card text block: role, company · location, date
-(`Jan 2026 - May 2026`), three bullet achievements. Deliberately unembellished compared
-to Projects.
+Fluid scale via `clamp()` in `tokens.css`: `--fs-display-xl` down to `--fs-label`.
 
-**ProjectsAndTech** — the page's centerpiece and its only stateful layout.
-- Data: `PROJECTS` + `TECHNOLOGIES` from `src/constants.ts`.
-- Desktop (`lg+`): two columns. Left = one project per `min-h-[80vh]` block, spaced
-  `space-y-32`; right = `w-[550px]` sticky (`top-52`) tech panel, `overflow-y-auto`, custom
-  `scrollbar-thin`. The sticky panel highlights the technologies of the project currently
-  most visible (IntersectionObserver, `threshold: [0.3,0.5,0.7]`, `rootMargin: -30% 0px`,
-  updates batched in `requestAnimationFrame`); inactive pills drop to `opacity-50 scale-95`.
-  Pill sizing is hand-tuned per tech name (`isLarge` / `isMedium` lists) — a manual
-  importance ranking, not derived from data.
-- Mobile/tablet: the same projects stack, each card followed by its own tech pill row.
-- Projects carry `links.github` only; `links.demo` and `metrics` exist in the type but are unused.
+### Layout
 
-**Research** — one card: badge `Under Review`, `First Author · Submitted to FISAT EAI 2026`,
-title, two bullets (JEPA world models for OOD detection; 10 paired seeds, EMA score
-normalization reversing AUROC rankings).
+One container (`--w-content: 1240px`) and one gutter. Every section shares it; the chapter
+rail sits outside it and only appears at ≥1360px, where there is margin to hold it.
 
-**Contact** — two columns: contact methods (email, phone, location, GitHub — each an icon
-tile + label/value row, mailto/tel/https links) and a three-field form
-(name/email/message) posting through EmailJS with a four-state machine
-`idle → sending → success | error`; success and error auto-reset after 5s, success clears
-the fields. Credentials come from `VITE_EMAILJS_SERVICE_ID / _TEMPLATE_ID / _PUBLIC_KEY`
-(see `.env.example`).
+## 5. Motion
 
-## 6. Background and motion system
+- `--ease-out` everywhere, `--d-micro` (180ms) through `--d-chapter` (1100ms).
+- One spectacle: the topology canvas behind the hero. The rest is depth and hierarchy, so what
+  moves says how far away it is or which layer it belongs to.
+- The hero canvas sits on a camera that drifts toward the pointer and gives a little to scroll
+  speed. It is clamped inside the 6% margin the camera adds by scaling, so it can never uncover
+  an edge of the hero. The graph does not change between resizes, so it is painted once into an
+  offscreen sheet and blitted each frame, and the accent colour is read once per build: reading
+  it with `getComputedStyle` on every frame forced a style recalculation on every frame.
+- `Reveal` fires once and never reverses. Content that vanishes on scroll-up is worse than
+  no animation.
+- `prefers-reduced-motion` renders a complete static page: reveals are instant and the canvas
+  draws a single frame.
 
-**Starfield** (`StarField.tsx`) — 2D canvas, no WebGL. Stars are `{x, y, z}`; count is
-`width * height / 1000`; each frame `z -= 1.5` and recycles to `canvas.width` when it
-reaches 0, giving forward flight. Projection is `perspective = width / z`, offset by a
-mouse-parallax term eased toward the cursor at 0.05 per frame (`* 0.1` of raw delta).
-Trails come from compositing `rgba(0,0,0,0.2)` over the previous frame instead of clearing.
-Resize rebuilds the star array. Cannot be paused — it is a permanent animation loop.
+### Positional and entrance motion
 
-**Reveal on scroll** (`hooks/useFadeIn.ts`) — the single shared reveal mechanism: an
-IntersectionObserver at `threshold: 0.1` toggles `opacity-0 translate-y-8` on and off as
-the element enters and leaves. Used by Contact and ProjectsAndTech only; other sections are
-static. `ScrollProgress` and `Header` run their own observers.
+Two kinds of motion, one rule each.
 
-## 7. Responsive strategy
+An **entrance** (`Reveal`) fires once and never reverses. A **positional** effect is scrubbed
+by scroll position and runs both ways, because scrolling back must restore the page it left.
+Nothing positional here is an entrance, so nothing can leave a reader with content they cannot
+scroll back for.
 
-- Base: single column, all sections `px-4 sm:px-6 lg:px-8`, `py-16 md:py-24`.
-- `md`: nav links replace the hamburger; Hero splits into text + avatar.
-- `lg`: Projects switches from stacked-with-per-project-tech to
-  scroll-linked sticky tech panel. This is the only breakpoint that changes layout
-  topology rather than density.
-- `index.css` adds mobile hygiene: transparent tap highlight, no text-size adjust.
+### Scroll
 
-## 8. Data and types
+Lenis lerps the native scroll position rather than replacing it, so the scrollbar, the keyboard,
+`window.scrollY` and every anchor measurement the rail takes keep working unchanged. Fragment
+links are routed through `lenis.scrollTo`, and `html`'s `scroll-behavior` is handed to Lenis for
+the lifetime of the hook so the page is never eased twice. Under reduced motion the hook does
+not start and the page scrolls natively. Nothing on the page depends on it: it is an easing, not
+a source of content.
 
-`src/types/type.ts` defines `Technology { name, icon: IconType }` and
-`Project { id, title, category, image, description, metrics?, links{github, demo?}, tech[] }`.
+It is a fixed fraction per frame, not a duration. A duration gives the wheel an easing curve with
+a long tail, and every scrubbed position on the page then chases that already-eased value.
+Measured after one 400px wheel tick: a 1.05s duration settled in 776ms and reached 90% of the
+travel at 334ms, `lerp: 0.2` settled in 574ms and reached 90% at 208ms, and the shipped
+`lerp: 0.16` settles in 690ms and reaches 90% at 241ms. The first movement comes 8ms after the
+wheel event, so the lag is the curve, not the input.
 
-`src/constants.ts` holds the entire content model: `TECHNOLOGIES` (a keyed map of 10
-entries grouped by comment into Backend / Architecture / Databases / Message Queue /
-Infrastructure) and `PROJECTS` (2 entries) whose `tech` fields are keys into that map.
-Rendering joins the two: `tech.map(id => ({ id, ...TECHNOLOGIES[id] })).filter(t => t.name)`.
+### Snap
 
-This is the seam to extend: adding content means editing `constants.ts` only. Images are
-placeholder `picsum.photos` URLs and `image` is never rendered — projects are text-only.
+When the reader stops with a chapter boundary inside the bottom band of the viewport going down,
+or the top band going up, the page finishes the move onto that boundary by itself. The idle
+window is 2.4s, the band is 45% of the viewport, and the snap takes 1.1s so it reads as the page
+settling rather than jumping. A stop well inside a chapter is left alone, and a boundary the page
+is already sitting on is ignored.
 
-## 9. Build and deploy
+### The pointer layer
 
-`pnpm build` = `tsc -b && vite build`; Vite `base` is `/portfolio/` for builds, `/` for
-dev. `pnpm deploy` runs the build then `gh-pages -d dist`. Deploy specifics are in
-`DEPLOY.md`, EmailJS setup in `EMAILJS_SETUP.md`.
+On a pointer that really hovers, a ring trails the cursor and takes the shape of what it is over,
+and the marked calls to action lean up to 8px toward it. The rect of a magnetic button is taken on
+`pointerenter`, before the pull moves it, or the element chases its own centre.
 
-## 10. Known gaps (verified in source, not fixed)
+The native cursor is hidden only after the loader has finished, so a touch screen, reduced motion
+or a script that never ran all leave the page with the pointer it shipped with. Inputs and dialogs
+take a real cursor back, because a ring cannot show a caret or a grab hand.
 
-- Tailwind ships as a CDN `<script>`; production users download the full runtime and the
-  import map in `index.html` still points at `aistudiocdn.com` for React.
-- Dead code: `components/TechStack.tsx`, `components/ProjectCard.tsx` are never imported;
-  `.glassmorphism`, `.glow`, `.tech-icon-disabled` in `index.html` are unused;
-  `Project.image`, `Project.metrics`, `links.demo` are unrendered.
-- Debug `console.log` in `ProjectsAndTech.tsx` (3 sites) and `StarField.tsx` (2 sites).
-- `App.css` and `index.css` duplicate the same `html, body, #root` reset.
-- `ScrollProgress` divides by possibly-zero `totalHeight` (short viewport → `NaN%`).
-- No reduced-motion handling: the starfield loop and scroll-driven reveals always animate.
-- All content is hard-coded English; there is no CMS or i18n layer.
-- No tests and no CI.
+### Small motions
+
+The repo link wipes its underline in from the left, drawn with `background-size` rather than
+`text-decoration` so it covers the arrow too. The viewer opens from the card: the raster is placed
+back on the figure's rect for one frame, then released, and the transition carries it to its own
+box. The loader leaves as a curtain, and the hero name starts on that handover instead of finishing
+behind it.
+
+### Velocity layer
+
+Speed is measured as pixels moved per frame, not taken from an easing library's internal unit.
+That number is written to one custom property, `--scroll-skew`, once per frame, and the services
+list shears by at most 2 degrees with it before settling flush. Measured on this page a single
+wheel tick shears 0.88deg and a rapid burst reaches 1.86deg, so the clamp is reserved for a
+fling. It stays at 0 when the hook is off, which is what keeps reduced motion and a failed
+script both square.
+
+### Depth
+
+The reading plane does not move. Body copy keeps its place under the eye, and only what sits at
+a distance from it drifts, which is what makes the page read as layers instead of a flat sheet.
+
+The hero is that stack at full size. Leaving 01 pulls the camera back: the foreground shrinks
+to 0.93, lifts and dims to 0.35 while the topology backdrop grows to 1.12 and drifts with the
+scroll. The two layers separate by about 24px at mid-transit and 47px at the end. The scroll
+cue is furniture and goes first, over the first 40% of the range. A dim alone read as a page
+fading out; the scale and the counter-moving backdrop are what read as depth.
+
+Down the page the same stack runs smaller. Chapter kickers travel 8px against the scroll,
+project figures 12px, and the copy between them not at all. Each sits at 0 at its reading
+position and is off home only while entering or leaving.
+
+### Text and figures
+
+Chapter titles and leads arrive through a mask. Each rendered line sits in its own clipping box
+and rises out of it, which is the difference between text appearing and text arriving. The boxes
+are rebuilt when the column's width changes and once the webfont lands, because both move the
+line breaks. A masked line keeps the room the plain line had, so the split shifts nothing.
+
+Titles are typed rather than slid: characters take their place in reading order, a caret runs
+with them and retires once the last one lands. The lead keeps the line-level rise, because a
+paragraph arriving character by character is noise.
+
+The mask is a `clip-path: inset(-0.6em -0.25em 0 -0.25em)`: the bottom edge stays flush so a
+line can enter from below it, and the top and sides are given back so ascenders and descenders
+are never cut. That is what kigo.studio does, and it beats the padding-and-negative-margin hack
+this started as, because the masked box is then exactly the line box it replaced.
+
+The hero's role swaps one word and keeps the other still. All the variants sit in the same grid
+cell, right-aligned, with only the active one visible, so the cell is exactly as wide as the
+longest of them and the word after it cannot move at any font size or zoom.
+
+The project figure arrives as a wipe down its frame, with the raster settling from a 6% over-scale.
+The wipe sits on the button inside the frame and not on the frame itself: an element clipped to
+nothing never reports itself as intersecting, so a mask on the observed element would never open.
+
+### The services beat
+
+The two projects are one path as much as the six chapters are, so the stage holds still while the
+track is carried sideways. In scroll order: a hold of 40% of a viewport on the first project so it
+can be read before it moves, one spread of scroll room to travel, then a dwell of half a viewport
+before the chapter lets go. The dwell is the release. The stage lifts 6%, pulls back to 0.96 and
+dims to 0.55 across it, so the hold reads as the chapter making way instead of the page stalling,
+and leaving the chapter costs deliberate scrolling.
+
+The stage is `position: sticky` inside a wrapper the hook sizes, not a ScrollTrigger pin. A pin
+spacer is created during a refresh, after the triggers below it have measured, so every chapter
+under services then scrubs a wrapper width too early. Sticky needs no spacer and changes nothing
+mid-refresh. The travel is written as `--services-x`, not as a transform, because the track
+already carries the velocity shear in CSS and one transform has one owner.
+
+A slide is exactly one stage tall and the figure takes whatever height is left, so no viewport
+height can push the stats, the tech row and the repo link off it. The registry follows whichever
+slide is on the stage, from the intersection observer that already tracked the active project.
+
+### One owner per transform
+
+An element gets its transform from one mechanism only. A scrubbed element must not also carry
+an entrance transform, and must not inherit a transition on `transform`. A 750ms transition
+makes a per-frame scrub chase the scroll instead of following it, and the element arrives late.
+The scrubbed elements therefore transition opacity only, and GSAP owns their position.
+
+A scrubbed displacement must also fit the space it moves into, because a transform reserves no
+space. The chapter title rises 13px inside the 16px grid gap above its lead, the kicker travels
+8px inside that same gap, and a figure 12px inside the 24px it owns above and below.
+Percentages of the element's own height do not hold that promise: a three line title at 14%
+overran the gap and landed on the lead.
+
+### Chapter rail
+
+A fixed column of six markers stubs off one spine, so the six chapters read as one path rather than
+six links. The active marker widens and takes the signal colour; the label is a hover affordance, not
+furniture, because it would run into the headline below about 1700px. There is no travelling dot:
+it answered "how far along" on behalf of nobody, and cost a scroll listener and a remeasure on every
+height change to do it.
+
+### Header chapter readout
+
+Below 900px nothing else says where you are: the rail lives in the desktop margin and the
+chapter menu is closed. `.header__now` renders `NN LABEL`, keyed by chapter so the fade replays
+on a boundary, and `aria-hidden` because it repeats the heading already in the document.
+
+## 6. Figures
+
+Project diagrams are Excalidraw scenes exported by hand to PNG and shown through a `<dialog>`
+lightbox (zoom, pan, keyboard). See `docs/diagrams/README.md`.
+
+The pixel size travels with the source in `Services.tsx`, and the `<img>` carries it as
+`width`/`height`. A lazy raster with no intrinsic size contributes no height until it loads, and
+the ~750px it then adds shifts every chapter below it out from under the reader.
+
+Inline SVG was tried and removed: the rasters are what Excalidraw actually produces, and the
+hand-mirrored SVG twin drifted from the scene.
+
+## 7. Accessibility
+
+- Every interactive element is a real button or link; figures are `<button aria-label>`.
+- Focus is visible (`:focus-visible` outline in `--signal`).
+- The lightbox uses native `<dialog>`, so focus trapping and Esc come from the platform.
+- `aria-labelledby` on every diagram; `aria-hidden` on decoration.
+- Text stays readable without JS: reveals are CSS transitions over present DOM.
+
+## 8. Known gaps
+
+- `public/diagrams/*.png` were exported before the code corrections landed, so they still
+  show `Stripe`, `MassTransit` and `Serilog → Seq/Jaeger`. Deliberately left as is.
+- No automated tests and no CI beyond the Cloudflare build.
+- Content is English-only, in one file; there is no i18n layer.
+- Lighthouse and mobile passes have not been re-run since the redesign.
