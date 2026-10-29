@@ -204,11 +204,11 @@ await cdp.evaluate(`(async () => {
 await sleep(170);
 await shot(cdp, 'h-title-reveal');
 
-// The seam caught mid-open, before the title has landed.
+// The seam caught mid-open, with the chapter head inside it.
 await cdp.evaluate(`(async () => {
   document.documentElement.style.scrollBehavior = 'auto';
   const el = document.getElementById('gateway');
-  window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.82);
+  window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.55);
 })()`, true);
 await sleep(500);
 await shot(cdp, 'i-seam-open');
@@ -900,7 +900,7 @@ const seam = await cdp.evaluate(`(async () => {
   const top = gateway.getBoundingClientRect().top + window.scrollY;
   const vh = window.innerHeight;
   const out = {};
-  for (const [name, at] of [['entering', vh - 40], ['half', vh * 0.675], ['open', vh * 0.35 - 10]]) {
+  for (const [name, at] of [['entering', vh - 40], ['half', vh * 0.62], ['open', vh * 0.1 - 10]]) {
     window.scrollTo(0, Math.round(top - at));
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     out[name] = getComputedStyle(gateway).clipPath;

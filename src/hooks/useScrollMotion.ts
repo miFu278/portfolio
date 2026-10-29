@@ -203,7 +203,11 @@ export const useScrollMotion = () => {
           const seam = ScrollTrigger.create({
             trigger: gateway,
             start: 'top bottom',
-            end: 'top 35%',
+            // Opens across the whole arrival, not the first third of it: the
+            // chapter head sits ~180px below the section's top edge, so an end
+            // any earlier has the slit finishing before there is anything inside
+            // it to see.
+            end: 'top 12%',
             onUpdate: (self) => open(self.progress),
             onRefresh: (self) => open(self.progress),
           });
