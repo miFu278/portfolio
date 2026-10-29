@@ -531,20 +531,31 @@
 }
 
 .hero__role__slot {
-  display: inline-block;
-  min-width: 9ch;
-  text-align: right;
+  /* Every word in the same grid cell, so the cell is exactly as wide as the
+     longest of them and the tail after it never moves. The mask is a clip-path
+     with negative top and side insets rather than overflow: that way an
+     ascender is never cut and the incoming word still enters from outside. This
+     is the trick kigo.studio uses on "Make your website cool". */
+  display: inline-grid;
+  clip-path: inset(-0.6em -0.3em 0 -0.3em);
+}
+
+.hero__role__slot > * {
+  grid-area: 1 / 1;
+  justify-self: end;
+}
+
+.hero__role__ghost {
+  visibility: hidden;
 }
 
 .hero__role__in {
-  display: inline-block;
-  animation: roleSwap 620ms var(--ease-out) both;
+  animation: roleRise 620ms var(--ease-rise) both;
 }
 
-@keyframes roleSwap {
+@keyframes roleRise {
   from {
-    opacity: 0;
-    transform: translateY(0.42em);
+    transform: translateY(105%);
   }
 }
 
@@ -581,7 +592,6 @@
     animation: none;
   }
 }
-
 .hero__lead {
   margin-top: var(--sp-6);
   font-family: var(--font-mono);
@@ -761,14 +771,12 @@
 
 /* Masked lines. splitLines wraps every rendered line in a `.line` box and moves
    its text into `.line__in`, so the entrance raises the line from behind its own
-   box instead of fading it. The padding pays for descenders and the negative
-   margin cancels the space that padding would add, so a masked line occupies
-   exactly the room the plain line did. */
+   box instead of fading it. The clip keeps its bottom edge flush and gives back
+   the top and sides, so ascenders and descenders are never cut and the box is
+   exactly the line box it replaced. */
 .line {
   display: block;
-  overflow: hidden;
-  padding-bottom: 0.2em;
-  margin-bottom: -0.2em;
+  clip-path: inset(-0.6em -0.25em 0 -0.25em);
 }
 
 .line__in {

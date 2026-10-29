@@ -441,7 +441,12 @@ const arrivals = await cdp.evaluate(`(async () => {
       caret: caret ? getComputedStyle(caret).animationName : 'none',
       caretAtEnd: caret ? !caret.nextElementSibling && !!caret.previousElementSibling : false,
       label: el.getAttribute('aria-label') ?? 'none',
-      clipped: lines.every((l) => getComputedStyle(l).overflow === 'hidden'),
+      // Either mechanism counts as a mask: the page uses clip-path, because it
+      // keeps ascenders and the box is exactly the line box.
+      clipped: lines.every((l) => {
+        const cs = getComputedStyle(l);
+        return cs.overflow === 'hidden' || cs.clipPath.startsWith('inset(');
+      }),
       settled: [...el.querySelectorAll('.line__in')].every((i) => getComputedStyle(i).transform === 'none'),
       wordSettled: words.every((w) => {
         const cs = getComputedStyle(w);
@@ -479,7 +484,7 @@ check(
   'every chapter line arrives through its own mask',
   unopened.length === 0 && arrivals.masks.length >= 6,
   unopened.length
-    ? unopened.map((m) => `${m.chapter}: ${m.lineCount} lines, clipped ${m.clipped}, settled ${m.settled}`).join(', ')
+    ? unopened.map((m) => `${m.chapter}: ${m.lineCount} lines, masked ${m.clipped}, settled ${m.settled}`).join(', ')
     : `${arrivals.masks.length} blocks, ${arrivals.masks.reduce((n, m) => n + m.lineCount, 0)} masked lines`,
 );
 
@@ -899,13 +904,27 @@ const heroText = `(() => {
     glyphs: claim.querySelectorAll('.hero__gl').length,
     caret: !!claim.querySelector('.hero__caret'),
     height: Math.round(claim.getBoundingClientRect().height),
-    role: slot ? slot.textContent.trim() : '',
+    role: slot ? (slot.querySelector('.hero__role__in')?.textContent ?? '').trim() : '',
     tailLeft: tail ? Math.round(tail.getBoundingClientRect().left) : -1,
     font: cs.fontFamily,
     fontStyle: cs.fontStyle,
     colour: cs.color,
   };
 })()`;
+// Typing is only visible while it happens, so poll for a frame where the
+// visible copy is shorter than the sentence it belongs to.
+let midType = false;
+for (let i = 0; i < 45 && !midType; i += 1) {
+  const pair = await cdp.evaluate(`(() => {
+    const claim = document.querySelector('.hero__claim');
+    const shown = claim.querySelector('span[aria-hidden="true"]');
+    const full = claim.querySelector('.sr-only');
+    return shown && full ? { shown: shown.textContent.length, full: full.textContent.length } : null;
+  })()`);
+  midType = pair !== null && pair.shown !== pair.full;
+  if (!midType) await sleep(100);
+}
+
 const heroFirst = await cdp.evaluate(heroText);
 // The role turns every 3.4s, so a wait that is a whole number of turns would
 // sample the same word twice. Six seconds is not.
@@ -917,12 +936,12 @@ const heroSecond = await cdp.evaluate(heroText);
 
 check(
   'the hero claim types and moves on to the next line',
-  heroFirst.caret &&
-    heroFirst.glyphs > 10 &&
+  midType &&
+    heroFirst.caret &&
     heroFirst.spoken.length > 10 &&
     heroSecond.spoken !== heroFirst.spoken &&
     heroSecond.height === heroFirst.height,
-  `${heroFirst.spoken.slice(0, 32)}... -> ${heroSecond.spoken.slice(0, 32)}..., box ${heroFirst.height}px both times`,
+  `caught mid-type: ${midType}, ${heroFirst.spoken.slice(0, 32)}... -> ${heroSecond.spoken.slice(0, 32)}..., box ${heroFirst.height}px both times`,
 );
 
 check(

@@ -41,9 +41,14 @@ const Hero = () => {
             </Reveal>
             <Reveal as="p" delay={120} className="hero__role">
               <span className="hero__role__slot" aria-hidden="true">
-                <span key={role} className="hero__role__in">
-                  {PROFILE.roles[role]}
-                </span>
+                {PROFILE.roles.map((option, i) => (
+                  <span
+                    key={option}
+                    className={i === role ? 'hero__role__in' : 'hero__role__ghost'}
+                  >
+                    {option}
+                  </span>
+                ))}
               </span>
               <span className="hero__role__tail" aria-hidden="true">
                 {PROFILE.roleTail}

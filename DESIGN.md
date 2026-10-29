@@ -80,11 +80,13 @@ never carry a sentence.
 
 ### Type
 
-Two families, both loaded in `index.html`:
+Three families, all loaded in `index.html`:
 
 - **Archivo** 400–700 — display and body.
 - **JetBrains Mono** 400/500 — technical content only: labels, meta, timestamps, node names,
   arrow labels. Never used as a blanket "dev" font for prose.
+- **Instrument Serif** italic — one line on the page, the hero's role. It is a voice, not a
+  scale step, which is why a third face earns its download.
 
 Fluid scale via `clamp()` in `tokens.css`: `--fs-display-xl` down to `--fs-label`.
 
@@ -190,10 +192,18 @@ and rises out of it, which is the difference between text appearing and text arr
 are rebuilt when the column's width changes and once the webfont lands, because both move the
 line breaks. A masked line keeps the room the plain line had, so the split shifts nothing.
 
-Titles are set word by word inside those boxes, 26ms apart, each word rising and fading up. The
-lead keeps the line-level rise, because a paragraph arriving word by word is noise. The words are
-inline-blocks, so the line box carries `white-space: nowrap`, or a line that exactly fitted as
-plain text could wrap inside its own mask and be clipped away.
+Titles are typed rather than slid: characters take their place in reading order, a caret runs
+with them and retires once the last one lands. The lead keeps the line-level rise, because a
+paragraph arriving character by character is noise.
+
+The mask is a `clip-path: inset(-0.6em -0.25em 0 -0.25em)`: the bottom edge stays flush so a
+line can enter from below it, and the top and sides are given back so ascenders and descenders
+are never cut. That is what kigo.studio does, and it beats the padding-and-negative-margin hack
+this started as, because the masked box is then exactly the line box it replaced.
+
+The hero's role swaps one word and keeps the other still. All the variants sit in the same grid
+cell, right-aligned, with only the active one visible, so the cell is exactly as wide as the
+longest of them and the word after it cannot move at any font size or zoom.
 
 The project figure arrives as a wipe down its frame, with the raster settling from a 6% over-scale.
 The wipe sits on the button inside the frame and not on the frame itself: an element clipped to
