@@ -29,15 +29,20 @@ public/diagrams/ecommerce.png   ←  from ecommerce-full.excalidraw
 public/diagrams/rag.png         ←  from the RAG scene
 ```
 
-6. `pnpm build` — nothing to edit in code. The mapping lives in one place:
+6. `pnpm build` — nothing to edit in code beyond the pixel size. The mapping lives in one
+place:
 
 ```ts
 // src/features/services/components/Services.tsx
-const DIAGRAM_SRC: Record<DiagramKey, string> = {
-  ecommerce: '/diagrams/ecommerce.png',
-  rag: '/diagrams/rag.png',
+const DIAGRAMS: Record<DiagramKey, { src: string; width: number; height: number }> = {
+  ecommerce: { src: '/diagrams/ecommerce.png', width: 1460, height: 804 },
+  rag: { src: '/diagrams/rag.png', width: 1687, height: 921 },
 };
 ```
+
+The `width`/`height` are the exported raster's real pixel size, not the on-screen size: they are
+what reserves the figure's box before the raster decodes. Re-crop, and they have to be updated
+with the file, or the page shifts when the figure loads.
 
 ## Why PNG and not inline SVG
 

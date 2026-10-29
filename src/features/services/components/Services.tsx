@@ -12,10 +12,16 @@ const PROJECT_IDS = PROJECTS.map((p) => p.id);
 /**
  * Figures exported by hand from docs/diagrams/*.excalidraw.
  * That folder holds the editable scene; the site ships the raster.
+ *
+ * The intrinsic size travels with the source because a lazy raster without one
+ * contributes no height until it decodes. The box is zero tall at first paint,
+ * then grows by the scaled image height, which drags every chapter below it
+ * down the page while the reader is mid-scroll. Width and height reserve the
+ * box up front; the CSS `width: 100%; height: auto` scales it from there.
  */
-const DIAGRAM_SRC: Record<DiagramKey, string> = {
-  ecommerce: '/diagrams/ecommerce.png',
-  rag: '/diagrams/rag.png',
+const DIAGRAMS: Record<DiagramKey, { src: string; width: number; height: number }> = {
+  ecommerce: { src: '/diagrams/ecommerce.png', width: 1460, height: 804 },
+  rag: { src: '/diagrams/rag.png', width: 1687, height: 921 },
 };
 
 const toTechs = (ids: string[]) =>
@@ -76,60 +82,66 @@ const ProjectBlock = ({
   total: number;
   register: (el: HTMLElement | null) => void;
   onZoom: (project: Project) => void;
-}) => (
-  <article className="project" id={project.id} ref={register}>
-    <div className="project__head">
-      <p className="project__index">
-        {project.index} / {String(total).padStart(2, '0')} — {project.year}
-      </p>
-      <h3 className="project__title">{project.title}</h3>
-      <p className="project__meta">{project.meta}</p>
-    </div>
+}) => {
+  const diagram = project.diagram ? DIAGRAMS[project.diagram] : undefined;
 
-    <div className="project__body">
-      <p className="body">{project.body}</p>
-
-      {project.diagram && (
-        <Reveal as="figure" className="project__diagram">
-          <button
-            type="button"
-            className="figure"
-            onClick={() => onZoom(project)}
-            aria-label={`Open ${project.title} architecture full screen`}
-          >
-            <img
-              src={DIAGRAM_SRC[project.diagram]}
-              alt={`${project.title} architecture`}
-              loading="lazy"
-              decoding="async"
-            />
-            <span className="figure__hint">click to zoom</span>
-          </button>
-        </Reveal>
-      )}
-
-      <div className="project__stats">
-        {project.stats.map((s) => (
-          <div key={s.label}>
-            <p className="stat__value">{s.value}</p>
-            <p className="stat__label">{s.label}</p>
-          </div>
-        ))}
+  return (
+    <article className="project" id={project.id} ref={register}>
+      <div className="project__head">
+        <p className="project__index">
+          {project.index} / {String(total).padStart(2, '0')} — {project.year}
+        </p>
+        <h3 className="project__title">{project.title}</h3>
+        <p className="project__meta">{project.meta}</p>
       </div>
 
-      <TechRow project={project} />
+      <div className="project__body">
+        <p className="body">{project.body}</p>
 
-      <a
-        className="project__link"
-        href={project.links.github}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {project.links.github.replace('https://', '')} ↗
-      </a>
-    </div>
-  </article>
-);
+        {diagram && (
+          <Reveal as="figure" className="project__diagram">
+            <button
+              type="button"
+              className="figure"
+              onClick={() => onZoom(project)}
+              aria-label={`Open ${project.title} architecture full screen`}
+            >
+              <img
+                src={diagram.src}
+                width={diagram.width}
+                height={diagram.height}
+                alt={`${project.title} architecture`}
+                loading="lazy"
+                decoding="async"
+              />
+              <span className="figure__hint">click to zoom</span>
+            </button>
+          </Reveal>
+        )}
+
+        <div className="project__stats">
+          {project.stats.map((s) => (
+            <div key={s.label}>
+              <p className="stat__value">{s.value}</p>
+              <p className="stat__label">{s.label}</p>
+            </div>
+          ))}
+        </div>
+
+        <TechRow project={project} />
+
+        <a
+          className="project__link"
+          href={project.links.github}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {project.links.github.replace('https://', '')} ↗
+        </a>
+      </div>
+    </article>
+  );
+};
 
 const Services = () => {
   const { activeId, register } = useActiveProject(PROJECT_IDS);
@@ -155,7 +167,7 @@ const Services = () => {
                 onZoom={(p) =>
                   setZoom(
                     p.diagram
-                      ? { src: DIAGRAM_SRC[p.diagram], alt: `${p.title} architecture` }
+                      ? { src: DIAGRAMS[p.diagram].src, alt: `${p.title} architecture` }
                       : null,
                   )
                 }

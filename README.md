@@ -28,6 +28,7 @@ pnpm lint        # eslint
 pnpm deploy      # wrangler deploy
 pnpm icons       # regenerate the favicon set from src/assets/mp-chibi.jpg
 pnpm shots       # full-page screenshots via Chrome DevTools Protocol → screenshots/
+pnpm scroll      # scroll-pass checks + screenshots → screenshots/scroll/
 ```
 
 ## Structure
@@ -46,7 +47,8 @@ src/
 │   ├── anomaly/       components/Anomaly          (research)
 │   ├── observability/ components/Observability    (experience)
 │   └── response/      components/Response + hooks/useContactForm
-├── hooks/        useActiveSection · useClock · useLoadProgress · useReducedMotion
+├── hooks/        useActiveSection · useChapterProgress · useClock · useLoadProgress
+│                 useReducedMotion · useScrollMotion
 ├── lib/          emailjs.ts — the only third-party transport boundary
 ├── pages/        Home.tsx — composes the chapters, owns no logic
 ├── styles/       tokens.css (design tokens) · app.css (layout + components)

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CHAPTERS, PROFILE } from '../../config/content';
+import { CHAPTERS, PROFILE, chapter } from '../../config/content';
 import { useActiveSection } from '../../hooks/useActiveSection';
 import { useClock } from '../../hooks/useClock';
 
@@ -9,6 +9,7 @@ const Header = () => {
   const [open, setOpen] = useState(false);
   const [stuck, setStuck] = useState(false);
   const active = useActiveSection(IDS);
+  const current = chapter(active);
   const clock = useClock(7);
 
   useEffect(() => {
@@ -38,6 +39,13 @@ const Header = () => {
           <i className="dot" aria-hidden="true" />
           {clock} {PROFILE.timezone}
         </p>
+
+        {/* Below the nav breakpoint nothing else says where you are: the rail
+            lives in the desktop margin and the chapter menu is closed. */}
+        <span key={current.id} className="header__now" aria-hidden="true">
+          <b>{current.numeral}</b>
+          {current.label}
+        </span>
 
         <button
           type="button"

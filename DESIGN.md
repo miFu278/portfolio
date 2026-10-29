@@ -98,10 +98,51 @@ rail sits outside it and only appears at ≥1360px, where there is margin to hol
 - `prefers-reduced-motion` renders a complete static page: reveals are instant and the canvas
   draws a single frame.
 
+### Positional and entrance motion
+
+Two kinds of motion, one rule each.
+
+An **entrance** (`Reveal`) fires once and never reverses. A **positional** effect is scrubbed
+by scroll position and runs both ways, because scrolling back must restore the page it left.
+The hero exit is positional: the shell lifts 9% and dims to 0.1 as the first chapter arrives,
+and the scroll cue fades out over the first 40% of that range. Neither is an entrance, so
+neither can leave a reader with a dimmed hero they cannot scroll away from.
+
+### One owner per transform
+
+An element gets its transform from one mechanism only. A scrubbed element must not also carry
+an entrance transform, and must not inherit a transition on `transform`. A 750ms transition
+makes a per-frame scrub chase the scroll instead of following it, and the element arrives late.
+`.chapter-head__title` therefore transitions opacity only, and GSAP owns its position.
+
+A scrubbed displacement must also fit the space it moves into. A transform reserves no space,
+so the chapter title rises 13px inside the 16px grid gap above its lead paragraph. Percentages
+of the element's own height do not hold that promise: a three line title at 14% overruns the gap.
+
+### Chapter rail packet
+
+`useChapterProgress` writes `--rail-y` on the rail from a single rAF-throttled scroll listener,
+and `.rail__packet` consumes it as a transform, so no scroll frame touches layout. Position is
+piecewise-linear between chapter anchors, where a chapter's anchor is the scroll offset at which
+its top reaches the middle of the viewport, so the packet never reaches a chapter before that
+chapter's heading has. It remeasures on resize and through a `ResizeObserver` on `body`, because
+anything that changes the document height moves every anchor below it.
+Under reduced motion the hook returns early and the packet is not drawn.
+
+### Header chapter readout
+
+Below 900px nothing else says where you are: the rail lives in the desktop margin and the
+chapter menu is closed. `.header__now` renders `NN LABEL`, keyed by chapter so the fade replays
+on a boundary, and `aria-hidden` because it repeats the heading already in the document.
+
 ## 6. Figures
 
 Project diagrams are Excalidraw scenes exported by hand to PNG and shown through a `<dialog>`
 lightbox (zoom, pan, keyboard). See `docs/diagrams/README.md`.
+
+The pixel size travels with the source in `Services.tsx`, and the `<img>` carries it as
+`width`/`height`. A lazy raster with no intrinsic size contributes no height until it loads, and
+the ~750px it then adds shifts every chapter below it out from under the reader.
 
 Inline SVG was tried and removed: the rasters are what Excalidraw actually produces, and the
 hand-mirrored SVG twin drifted from the scene.

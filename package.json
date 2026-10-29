@@ -16,7 +16,8 @@
     "preview": "vite preview",
     "deploy": "wrangler deploy",
     "icons": "powershell -NoProfile -File scripts/make-icons.ps1",
-    "shots": "node scripts/shoot.mjs"
+    "shots": "node scripts/shoot.mjs",
+    "scroll": "node scripts/scroll-shots.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
