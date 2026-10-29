@@ -192,10 +192,11 @@ nothing never reports itself as intersecting, so a mask on the observed element 
 ### The services beat
 
 The two projects are one path as much as the six chapters are, so the stage holds still while the
-track is carried sideways: one slide per viewport, one spread of scroll room to travel it, and
-then a dwell of half a viewport before the chapter lets go. The dwell is the release. The stage
-lifts 6%, pulls back to 0.96 and dims to 0.55 across it, so the hold reads as the chapter making
-way instead of the page stalling, and leaving the chapter costs deliberate scrolling.
+track is carried sideways. In scroll order: a hold of 30% of a viewport on the first project so it
+can be read before it moves, one spread of scroll room to travel, then a dwell of half a viewport
+before the chapter lets go. The dwell is the release. The stage lifts 6%, pulls back to 0.96 and
+dims to 0.55 across it, so the hold reads as the chapter making way instead of the page stalling,
+and leaving the chapter costs deliberate scrolling.
 
 The stage is `position: sticky` inside a wrapper the hook sizes, not a ScrollTrigger pin. A pin
 spacer is created during a refresh, after the triggers below it have measured, so every chapter

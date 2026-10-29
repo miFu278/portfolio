@@ -209,21 +209,27 @@ export const useScrollMotion = () => {
         if (!stage || !hold || !track) return;
 
         const spread = () => Math.max(0, (track.children.length - 1) * stage.clientWidth);
+        // Three numbers, in scroll order: a hold on the first project so it can be
+        // read before it moves, the travel itself, and the dwell that releases
+        // the chapter.
+        const lead = () => Math.round(window.innerHeight * 0.3);
         const dwell = () => Math.round(window.innerHeight * 0.5);
+        const held = () => lead() + spread() + dwell();
 
-        // The wrapper is one viewport plus the travel plus the dwell, and it is
-        // resized before every refresh rather than after, so nothing ever
-        // measures a layout that is about to change.
+        // The wrapper is one viewport plus all three, and it is resized before
+        // every refresh rather than after, so nothing ever measures a layout that
+        // is about to change.
         const room = () => {
-          hold.style.height = `calc(100svh + ${spread() + dwell()}px)`;
+          hold.style.height = `calc(100svh + ${held()}px)`;
         };
         room();
         ScrollTrigger.addEventListener('refreshInit', room);
 
         const place = (progress: number) => {
-          const gone = progress * (spread() + dwell());
-          const slid = spread() > 0 ? Math.min(1, gone / spread()) : 1;
-          const leave = dwell() > 0 ? Math.max(0, Math.min(1, (gone - spread()) / dwell())) : 0;
+          const gone = progress * held();
+          const slid = spread() > 0 ? Math.min(1, Math.max(0, (gone - lead()) / spread())) : 1;
+          const leave =
+            dwell() > 0 ? Math.max(0, Math.min(1, (gone - lead() - spread()) / dwell())) : 0;
 
           track.style.setProperty('--services-x', `${(-spread() * slid).toFixed(1)}px`);
 
@@ -243,7 +249,7 @@ export const useScrollMotion = () => {
           scrollTrigger: {
             trigger: hold,
             start: 'top top',
-            end: () => `+=${spread() + dwell()}`,
+            end: () => `+=${held()}`,
             scrub: true,
           },
           onUpdate: () => place(state.progress),

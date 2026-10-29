@@ -512,72 +512,82 @@ const beat = await cdp.evaluate(`(async () => {
   const top = hold.getBoundingClientRect().top + window.scrollY;
   const spread = Math.round((track.children.length - 1) * stage.clientWidth);
   const room = Math.round(hold.getBoundingClientRect().height - window.innerHeight);
-  const rows = [];
-  for (const step of [0, 0.5, 1]) {
-    window.scrollTo(0, Math.round(top + step * room));
+
+  // Eleven positions across the hold: the shape of the beat (hold, travel,
+  // dwell) is read from behaviour rather than from constants the page never
+  // exposes.
+  const samples = [];
+  for (let i = 0; i <= 10; i += 1) {
+    window.scrollTo(0, Math.round(top + (room * i) / 10));
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-    const geometry = {
+    samples.push({
+      at: i / 10,
       x: Number.parseFloat(track.style.getPropertyValue('--services-x')) || 0,
       stageTop: Math.round(stage.getBoundingClientRect().top),
       opacity: Number.parseFloat(stage.style.opacity || '1'),
       lifted: (stage.style.transform || '').includes('translate3d'),
-    };
-    // The active project comes from an IntersectionObserver, which reports a
-    // frame or two after the scroll that moved the slide.
-    await new Promise((r) => setTimeout(r, 220));
-    rows.push({
-      ...geometry,
-      tech: [...document.querySelectorAll('.registry .tech[data-active="true"]')]
-        .map((t) => t.textContent)
-        .join('|'),
     });
   }
 
-  // offsetHeight, not the rect: the velocity layer shears the track, and a
-  // sheared box reports a taller bounding rect than the layout box it occupies.
+  const tech = [];
+  for (const at of [0, 0.5, 1]) {
+    window.scrollTo(0, Math.round(top + room * at));
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    // The active project comes from an IntersectionObserver, which reports a
+    // frame or two after the scroll that moved the slide.
+    await new Promise((r) => setTimeout(r, 220));
+    tech.push(
+      [...document.querySelectorAll('.registry .tech[data-active="true"]')]
+        .map((t) => t.textContent)
+        .join('|'),
+    );
+  }
+
   const slides = [...document.querySelectorAll('.services__list .project')].map(
     (c) => c.offsetHeight,
   );
-  return { spread, room, dwell: room - spread, rows, slides, vh: window.innerHeight };
+  return { spread, room, samples, tech, slides, vh: window.innerHeight };
 })()`, true);
 
+const moving = beat === null ? null : beat.samples.find((s) => Math.abs(s.x) > 1);
+const parked = beat === null ? null : [...beat.samples].reverse().find((s) => s.x > -beat.spread + 1);
+
 check(
-  'the projects travel one stage width, then park',
-  beat !== null &&
-    Math.abs(beat.rows[0].x) < 1 &&
-    beat.rows[1].x < beat.rows[0].x &&
-    Math.abs(beat.rows[2].x + beat.spread) <= 2,
+  'the first project holds before the track moves',
+  beat !== null && beat.samples[0].x === 0 && beat.samples[1].x === 0 && moving !== null && moving.at > 0.1,
   beat === null
     ? 'stage missing'
-    : `travel ${beat.rows.map((r) => r.x.toFixed(0)).join(' -> ')} of ${-beat.spread}px`,
+    : `still at ${beat.samples[1].at * 100}% of the hold, first movement at ${moving ? moving.at * 100 : 'none'}%`,
 );
 
 check(
-  'the stage holds for extra scroll after the last project',
-  beat !== null &&
-    beat.dwell >= Math.round(beat.vh * 0.35) &&
-    Math.abs(beat.rows[0].stageTop) <= 1 &&
-    Math.abs(beat.rows[1].stageTop) <= 1 &&
-    // By the end of the dwell the release has lifted it off the top edge, which
-    // is the point of the release.
-    beat.rows[2].stageTop < -10,
+  'the projects travel one stage width, then park',
+  beat !== null && Math.abs(beat.samples[10].x + beat.spread) <= 2 && parked !== null && parked.at < 0.95,
   beat === null
     ? 'stage missing'
-    : `hold ${beat.room}px, ${beat.dwell}px of it after the travel, stage top ${beat.rows.map((r) => r.stageTop).join('/')}`,
+    : `last movement at ${parked ? parked.at * 100 : 'never'}% of the hold, parked on ${-beat.spread}px`,
+);
+
+check(
+  'the stage holds still before it releases',
+  beat !== null &&
+    beat.samples.every((s) => s.lifted || Math.abs(s.stageTop) <= 1) &&
+    beat.samples[0].stageTop === 0,
+  beat === null ? 'stage missing' : `stage top ${beat.samples.map((s) => s.stageTop).join('/')}`,
 );
 
 check(
   'the stage releases during the dwell',
-  beat !== null && beat.rows[0].opacity === 1 && beat.rows[2].opacity < 0.7 && beat.rows[2].lifted,
+  beat !== null && beat.samples[0].opacity === 1 && beat.samples[10].opacity < 0.7 && beat.samples[10].lifted,
   beat === null
     ? 'stage missing'
-    : `opacity ${beat.rows.map((r) => r.opacity.toFixed(2)).join(' -> ')}, lifted ${beat.rows[2].lifted}`,
+    : `opacity ${beat.samples[0].opacity.toFixed(2)} -> ${beat.samples[10].opacity.toFixed(2)}, lifted ${beat.samples[10].lifted}`,
 );
 
 check(
   'the registry follows whichever project is on the stage',
-  beat !== null && beat.rows[0].tech !== beat.rows[2].tech && beat.rows[0].tech.length > 0,
-  beat === null ? 'stage missing' : `${beat.rows[0].tech} -> ${beat.rows[2].tech}`,
+  beat !== null && beat.tech[0] !== beat.tech[2] && beat.tech[0].length > 0,
+  beat === null ? 'stage missing' : `${beat.tech[0]} -> ${beat.tech[2]}`,
 );
 
 check(
