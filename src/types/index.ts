@@ -10,7 +10,7 @@ export interface Technology {
 }
 
 /** Which inline diagram component a project renders. */
-export type DiagramKey = 'ecommerce' | 'rag';
+export type DiagramKey = 'ecommerce' | 'rag' | 'portfolio';
 
 export interface ProjectStat {
   value: string;
@@ -29,6 +29,8 @@ export interface Project {
   stats: ProjectStat[];
   /** Key of the inline SVG diagram component in features/services/components/diagrams. */
   diagram?: DiagramKey;
+  /** Alt text for the figure, when "architecture" is not what it shows. */
+  figureAlt?: string;
   links: { github: string; demo?: string };
   tech: string[];
 }

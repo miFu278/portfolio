@@ -22,6 +22,9 @@ const PROJECT_IDS = PROJECTS.map((p) => p.id);
 const DIAGRAMS: Record<DiagramKey, { src: string; width: number; height: number }> = {
   ecommerce: { src: '/diagrams/ecommerce.png', width: 1460, height: 804 },
   rag: { src: '/diagrams/rag.png', width: 1687, height: 921 },
+  // Not a diagram: a capture of this page's own hero, so the figure the card
+  // shows for this project is the thing being described.
+  portfolio: { src: '/shots/portfolio-hero.jpg', width: 1600, height: 1000 },
 };
 
 const toTechs = (ids: string[]) =>
@@ -111,7 +114,7 @@ const ProjectBlock = ({
                 src={diagram.src}
                 width={diagram.width}
                 height={diagram.height}
-                alt={`${project.title} architecture`}
+                alt={project.figureAlt ?? `${project.title} architecture`}
                 loading="lazy"
                 decoding="async"
               />
@@ -170,7 +173,11 @@ const Services = () => {
                     onZoom={(p, from) =>
                       setZoom(
                         p.diagram
-                          ? { src: DIAGRAMS[p.diagram].src, alt: `${p.title} architecture`, from }
+                          ? {
+                              src: DIAGRAMS[p.diagram].src,
+                              alt: p.figureAlt ?? `${p.title} architecture`,
+                              from,
+                            }
                           : null,
                       )
                     }

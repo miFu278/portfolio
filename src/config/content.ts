@@ -7,6 +7,11 @@ import {
   SiDocker,
   SiGo,
   SiSupabase,
+  SiReact,
+  SiTypescript,
+  SiGreensock,
+  SiVite,
+  SiCloudflare,
 } from 'react-icons/si';
 import { VscLayersActive } from 'react-icons/vsc';
 import { Mail, Phone, MapPin, Github } from 'lucide-react';
@@ -64,6 +69,9 @@ export const chapter = (id: string): Chapter =>
 export const TECHNOLOGIES: Record<string, Technology> = {
   '.NET': { name: '.NET', icon: SiDotnet, layer: 'runtime' },
   Go: { name: 'Go', icon: SiGo, layer: 'runtime' },
+  React: { name: 'React', icon: SiReact, layer: 'runtime' },
+  TypeScript: { name: 'TypeScript', icon: SiTypescript, layer: 'runtime' },
+  GSAP: { name: 'GSAP', icon: SiGreensock, layer: 'runtime' },
 
   'Clean Architecture': { name: 'Clean Architecture', icon: VscLayersActive, layer: 'architecture' },
 
@@ -76,6 +84,8 @@ export const TECHNOLOGIES: Record<string, Technology> = {
   Supabase: { name: 'Supabase', icon: SiSupabase, layer: 'data' },
 
   Docker: { name: 'Docker', icon: SiDocker, layer: 'infra' },
+  Vite: { name: 'Vite', icon: SiVite, layer: 'infra' },
+  Cloudflare: { name: 'Cloudflare', icon: SiCloudflare, layer: 'infra' },
 };
 
 export const LAYER_ORDER: Technology['layer'][] = [
@@ -120,6 +130,23 @@ export const PROJECTS: Project[] = [
     diagram: 'rag',
     links: { github: 'https://github.com/miFu278/RAGChatBot' },
     tech: ['.NET', 'PostgreSQL', 'pgvector', 'Supabase'],
+  },
+  {
+    id: 'portfolio',
+    index: '03',
+    title: 'This Portfolio',
+    year: '2026',
+    meta: 'solo · React · GSAP · Cloudflare Workers',
+    body: 'The argument this page makes is that a backend engineer can hold a frame of motion. Scroll is lerped rather than stepped, every scrubbed position is read from the same geometry that moves it, and a headless harness asserts thirty-nine invariants over the built page after every change. The hero says it in the first screen.',
+    stats: [
+      { value: '39', label: 'invariants' },
+      { value: '6', label: 'chapters' },
+      { value: 'headless', label: 'verified' },
+    ],
+    diagram: 'portfolio',
+    figureAlt: 'The portfolio hero: the name, the typed claim, and the role line',
+    links: { github: PROFILE.siteUrl },
+    tech: ['React', 'TypeScript', 'GSAP', 'Vite', 'Cloudflare'],
   },
 ];
 

@@ -552,7 +552,10 @@ const beat = await cdp.evaluate(`(async () => {
   }
 
   const tech = [];
-  for (const at of [0, 0.5, 1]) {
+  // The last sample sits a hair short of the end of the hold: an observer that
+  // only looks at the entries it was handed leaves the previous project winning
+  // there, which is the bug this pins down.
+  for (const at of [0, 0.5, 0.98, 1]) {
     window.scrollTo(0, Math.round(top + room * at));
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     // The active project comes from an IntersectionObserver, which reports a
@@ -639,8 +642,11 @@ check(
 
 check(
   'the registry follows whichever project is on the stage',
-  beat !== null && beat.tech[0] !== beat.tech[2] && beat.tech[0].length > 0,
-  beat === null ? 'stage missing' : `${beat.tech[0]} -> ${beat.tech[2]}`,
+  beat !== null &&
+    beat.tech[0] !== beat.tech[3] &&
+    beat.tech[0].length > 0 &&
+    beat.tech[2] === beat.tech[3],
+  beat === null ? 'stage missing' : `${beat.tech[0]} -> ${beat.tech[3]}, last frame matches: ${beat.tech[2] === beat.tech[3]}`,
 );
 
 check(
@@ -1033,7 +1039,7 @@ await shot(cdp, 'b-hero-exit');
 const STOPS = [
   ['c-chapter-02', `document.getElementById('gateway')`, -120],
   ['d-services-01', `document.querySelector('.services__pin')`, 40],
-  ['d-services-02', `document.querySelector('.services__pin')`, 640],
+  ['d-services-02', `document.querySelector('.services__pin')`, 1850],
   ['e-chapter-05', `document.getElementById('observability')`, -120],
 ];
 
