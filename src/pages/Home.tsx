@@ -11,6 +11,7 @@ import Observability from '../features/observability/components/Observability';
 import Response from '../features/response/components/Response';
 import { useLoadProgress } from '../hooks/useLoadProgress';
 import { useScrollMotion } from '../hooks/useScrollMotion';
+import { useSmoothScroll } from '../hooks/useSmoothScroll';
 import portrait from '../assets/mp.jpg';
 
 /**
@@ -19,6 +20,7 @@ import portrait from '../assets/mp.jpg';
  */
 const Home = () => {
   const { progress, done } = useLoadProgress(portrait);
+  useSmoothScroll();
   useScrollMotion();
 
   return (

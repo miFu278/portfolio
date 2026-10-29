@@ -93,6 +93,9 @@ rail sits outside it and only appears at ≥1360px, where there is margin to hol
 - `--ease-out` everywhere, `--d-micro` (180ms) through `--d-chapter` (1100ms).
 - One spectacle: the topology canvas behind the hero. The rest is depth and hierarchy, so what
   moves says how far away it is or which layer it belongs to.
+- The hero canvas sits on a camera that drifts toward the pointer and gives a little to scroll
+  speed. It is clamped inside the 6% margin the camera adds by scaling, so it can never uncover
+  an edge of the hero.
 - `Reveal` fires once and never reverses. Content that vanishes on scroll-up is worse than
   no animation.
 - `prefers-reduced-motion` renders a complete static page: reveals are instant and the canvas
@@ -106,6 +109,24 @@ An **entrance** (`Reveal`) fires once and never reverses. A **positional** effec
 by scroll position and runs both ways, because scrolling back must restore the page it left.
 Nothing positional here is an entrance, so nothing can leave a reader with content they cannot
 scroll back for.
+
+### Scroll
+
+Lenis lerps the native scroll position rather than replacing it, so the scrollbar, the keyboard,
+`window.scrollY` and every anchor measurement the rail takes keep working unchanged. Fragment
+links are routed through `lenis.scrollTo`, and `html`'s `scroll-behavior` is handed to Lenis for
+the lifetime of the hook so the page is never eased twice. Under reduced motion the hook does
+not start and the page scrolls natively. Nothing on the page depends on it: it is an easing, not
+a source of content.
+
+### Velocity layer
+
+Speed is measured as pixels moved per frame, not taken from an easing library's internal unit.
+That number is written to one custom property, `--scroll-skew`, once per frame, and the services
+list shears by at most 2 degrees with it before settling flush. Measured on this page a single
+wheel tick shears 0.88deg and a rapid burst reaches 1.86deg, so the clamp is reserved for a
+fling. It stays at 0 when the hook is off, which is what keeps reduced motion and a failed
+script both square.
 
 ### Depth
 

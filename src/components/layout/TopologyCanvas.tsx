@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { scrollVelocity } from '../../lib/scrollVelocity';
 
 interface Node {
   x: number;
@@ -17,7 +18,10 @@ interface Edge {
  * and one packet that travels the graph as you scroll.
  *
  * - Node count scales with area, so a phone does not render a desktop graph.
- * - Edges are baked once per resize and blitted; only the packet redraws.
+ * - The graph sits on a camera that drifts toward the pointer and gives a
+   little to scroll speed, so the backdrop responds to the reader instead of
+   playing to itself. The camera is clamped inside a 6% margin it adds by
+   scaling, so it can never uncover an edge of the hero.
  * - Pauses when the tab is hidden or the canvas scrolls out of view.
  * - Renders a single static frame under prefers-reduced-motion.
  */
@@ -114,8 +118,6 @@ const TopologyCanvas = () => {
     };
 
     const drawBase = () => {
-      ctx.clearRect(0, 0, width, height);
-
       ctx.strokeStyle = 'rgba(255,255,255,0.055)';
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -191,8 +193,44 @@ const TopologyCanvas = () => {
       ctx.globalAlpha = 1;
     };
 
+    // The camera: a small pointer-driven offset, plus a nudge from scroll
+    // speed. CAMERA_SCALE is what pays for the offsets; at 1.06 the drawing
+    // covers the frame with 27px to spare on each vertical edge.
+    const CAMERA_SCALE = 1.06;
+    const CAMERA_LIMIT_X = 20;
+    const CAMERA_LIMIT_Y = 10;
+    let camX = 0;
+    let camY = 0;
+    let aimX = 0;
+    let aimY = 0;
+
+    const onPointerMove = (event: PointerEvent) => {
+      if (event.pointerType !== 'mouse') return;
+      aimX = (event.clientX / window.innerWidth - 0.5) * 2;
+      aimY = (event.clientY / window.innerHeight - 0.5) * 2;
+    };
+
+    const placeCamera = (moving: boolean) => {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+
+      let offsetY = aimY * CAMERA_LIMIT_Y;
+      if (moving) {
+        camX += (aimX * CAMERA_LIMIT_X - camX) * 0.08;
+        offsetY += scrollVelocity.value * 8;
+        camY += (offsetY - camY) * 0.08;
+      } else {
+        camX = aimX * CAMERA_LIMIT_X;
+        camY = offsetY;
+      }
+
+      const scale = dpr * CAMERA_SCALE;
+      ctx.setTransform(scale, 0, 0, scale, camX * dpr, camY * dpr);
+    };
+
     const loop = (t: number) => {
       if (!running) return;
+      placeCamera(true);
       drawBase();
       drawPacket(t);
       frame = requestAnimationFrame(loop);
@@ -200,6 +238,7 @@ const TopologyCanvas = () => {
 
     const start = () => {
       if (reduced) {
+        placeCamera(false);
         drawBase();
         return;
       }
@@ -213,14 +252,19 @@ const TopologyCanvas = () => {
     build();
 
     if (reduced) {
+      placeCamera(false);
       drawBase();
     } else {
+      window.addEventListener('pointermove', onPointerMove, { passive: true });
       start();
     }
 
     const onResize = () => {
       build();
-      if (reduced) drawBase();
+      if (reduced) {
+        placeCamera(false);
+        drawBase();
+      }
     };
 
     const onVisibility = () => {
@@ -246,6 +290,7 @@ const TopologyCanvas = () => {
       running = false;
       stop();
       observer.disconnect();
+      window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('resize', onResize);
       document.removeEventListener('visibilitychange', onVisibility);
     };

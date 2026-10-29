@@ -48,8 +48,8 @@ src/
 │   ├── observability/ components/Observability    (experience)
 │   └── response/      components/Response + hooks/useContactForm
 ├── hooks/        useActiveSection · useChapterProgress · useClock · useLoadProgress
-│                 useReducedMotion · useScrollMotion
-├── lib/          emailjs.ts — the only third-party transport boundary
+│                 useReducedMotion · useScrollMotion · useSmoothScroll
+├── lib/          emailjs.ts (the only third-party transport boundary) · scrollVelocity.ts
 ├── pages/        Home.tsx — composes the chapters, owns no logic
 ├── styles/       tokens.css (design tokens) · app.css (layout + components)
 ├── types/        index.ts

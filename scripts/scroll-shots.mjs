@@ -265,6 +265,68 @@ check(
   `--rail-y ${last.railY} vs mark ${last.marks[last.marks.length - 1]} at scrollY ${last.scrollY}`,
 );
 
+// The wheel has to be eased by Lenis, and the velocity layer has to shear with
+// it and settle flush. A wheel event is the only honest way to see that: a
+// window.scrollTo jump produces no velocity at all.
+await cdp.evaluate(`window.scrollTo(0, 0)`, false);
+await sleep(400);
+// Frame timing during the burst. Informational only: this runs headless with the
+// GPU disabled, so the numbers set a floor, not a real-world figure.
+await cdp.evaluate(`(() => {
+  window.__frames = [];
+  window.__sampling = true;
+  const tick = (t) => {
+    window.__frames.push({ t, y: window.scrollY });
+    if (window.__sampling) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+})()`);
+const wheel = [];
+for (let i = 0; i < 6; i += 1) {
+  await cdp.send('Input.dispatchMouseEvent', {
+    type: 'mouseWheel',
+    x: 700,
+    y: 450,
+    deltaX: 0,
+    deltaY: 220,
+  });
+  await sleep(70);
+  wheel.push(
+    await cdp.evaluate(`({
+      y: Math.round(window.scrollY),
+      skew: document.documentElement.style.getPropertyValue('--scroll-skew'),
+    })`),
+  );
+}
+await sleep(1400);
+const wheelSettled = await cdp.evaluate(`({
+  y: Math.round(window.scrollY),
+  skew: document.documentElement.style.getPropertyValue('--scroll-skew'),
+})`);
+const frames = await cdp.evaluate(`(() => {
+  window.__sampling = false;
+  const rows = window.__frames;
+  const gaps = rows.slice(1).map((r, i) => r.t - rows[i].t).sort((a, b) => a - b);
+  const steps = rows.slice(1).map((r, i) => Math.abs(r.y - rows[i].y));
+  const at = (q) => +gaps[Math.min(gaps.length - 1, Math.floor(gaps.length * q))].toFixed(1);
+  return { count: gaps.length, median: at(0.5), p95: at(0.95), maxStep: +Math.max(...steps).toFixed(0) };
+})()`);
+console.log(
+  `  info  while a reader scrolls: frame gap median ${frames.median}ms, p95 ${frames.p95}ms; largest scroll step in one frame ${frames.maxStep}px over ${frames.count} frames (headless, no GPU)`,
+);
+
+const shears = wheel.map((s) => Math.abs(Number.parseFloat(s.skew) || 0));
+check(
+  'the wheel is eased and the velocity layer shears with it',
+  shears[0] > 0.05 && shears[0] < 1.6 && Math.max(...shears) <= 2.001 && wheelSettled.y > 800,
+  `one tick shears ${shears[0].toFixed(2)}deg, the burst reaches ${Math.max(...shears).toFixed(2)}deg of a 2deg ceiling, scrolled to ${wheelSettled.y}`,
+);
+check(
+  'the shear settles flush when the wheel stops',
+  Math.abs(Number.parseFloat(wheelSettled.skew) || 0) < 0.01,
+  `--scroll-skew ${wheelSettled.skew || '0deg'}`,
+);
+
 // Every scrubbed element is measured at both ends of its own transit, because
 // a transform reserves no space: what it may not do is travel further than the
 // layout gap around it. The gaps are read with every transform cleared.
@@ -286,6 +348,12 @@ const scrubbed = await cdp.evaluate(`(async () => {
       amplitude.push(Math.abs(shift(el)));
     }
 
+    // The velocity layer shears a container with scroll speed, and a skew
+    // changes what getBoundingClientRect reports. Clear it with the transforms.
+    const skewers = [...document.querySelectorAll('.services__list')];
+    const keptSkew = skewers.map((n) => [n, n.style.transform]);
+    skewers.forEach((n) => { n.style.transform = 'none'; });
+
     const neighbours = [el, el.previousElementSibling, el.nextElementSibling].filter(Boolean);
     const kept = neighbours.map((n) => [n, n.style.transform]);
     neighbours.forEach((n) => { n.style.transform = 'none'; });
@@ -297,6 +365,7 @@ const scrubbed = await cdp.evaluate(`(async () => {
       ? +(el.nextElementSibling.getBoundingClientRect().top - plain.bottom).toFixed(1)
       : null;
     kept.forEach(([n, value]) => { n.style.transform = value; });
+    keptSkew.forEach(([n, value]) => { n.style.transform = value; });
 
     out.push({
       name: el.className.split(' ').pop(),
@@ -483,6 +552,45 @@ await cdp.evaluate(`(async () => {
 })()`, true);
 await shot(cdp, 'f-mobile-head');
 
+/* ---------------------------------------------------------- reduced motion */
+
+console.log('reduced motion 1500x900');
+await cdp.send('Emulation.setEmulatedMedia', {
+  features: [{ name: 'prefers-reduced-motion', value: 'reduce' }],
+});
+await load(cdp, 1500, 900);
+
+const calm = await cdp.evaluate(`(async () => {
+  const shell = document.querySelector('#ingress .shell');
+  const title = document.querySelector('#gateway .chapter-head__title');
+  const packet = document.querySelector('.rail__packet');
+  window.scrollTo(0, 380);
+  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  await new Promise((r) => setTimeout(r, 400));
+  return {
+    matches: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    y: Math.round(window.scrollY),
+    shellOpacity: shell ? getComputedStyle(shell).opacity : null,
+    shellTransform: shell ? getComputedStyle(shell).transform : null,
+    titleTransform: title ? getComputedStyle(title).transform : null,
+    packet: packet ? getComputedStyle(packet).display : 'missing',
+    skew: document.documentElement.style.getPropertyValue('--scroll-skew'),
+  };
+})()`, true);
+
+check(
+  'reduced motion renders a static page that still scrolls',
+  calm.matches &&
+    calm.y === 380 &&
+    calm.shellTransform === 'none' &&
+    calm.titleTransform === 'none' &&
+    calm.shellOpacity === '1' &&
+    calm.packet === 'none' &&
+    (calm.skew === '' || calm.skew === '0deg'),
+  `hero opacity ${calm.shellOpacity}, hero transform ${calm.shellTransform}, title transform ${calm.titleTransform}, packet ${calm.packet}, skew ${calm.skew || 'unset'}, scrolled to ${calm.y}`,
+);
+
+await cdp.send('Emulation.setEmulatedMedia', { features: [] });
 
 cdp.close();
 cleanup();

@@ -802,6 +802,12 @@
   /* grid items default to min-width:auto, so the 840-wide drawing inside a
      card would stretch the track and push the card under the registry. */
   min-width: 0;
+  /* Velocity layer. The list shears by at most a degree while the page is
+     moving and settles flush when it stops, which is what gives a long page
+     weight. The value is one custom property written on the root, once per
+     frame, by useSmoothScroll. It stays 0 when that hook is off, so reduced
+     motion and a failed script both leave the cards square. */
+  transform: skewY(var(--scroll-skew, 0deg));
 }
 
 .project {
