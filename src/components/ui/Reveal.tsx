@@ -10,6 +10,11 @@ interface RevealProps {
   delay?: number;
   /** Wrap each rendered line in its own mask and raise them from behind it. */
   lines?: boolean;
+  /**
+   * Set the heading word by word inside the line masks instead of sliding each
+   * line as one block. Implies `lines`.
+   */
+  words?: boolean;
   className?: string;
   style?: CSSProperties;
 }
@@ -24,10 +29,19 @@ interface RevealProps {
  * and text arriving. The masks are rebuilt on resize and once the webfont
  * lands, because both change where the lines break.
  */
-const Reveal = ({ children, as: Tag = 'div', delay = 0, lines = false, className, style }: RevealProps) => {
+const Reveal = ({
+  children,
+  as: Tag = 'div',
+  delay = 0,
+  lines = false,
+  words = false,
+  className,
+  style,
+}: RevealProps) => {
   const ref = useRef<HTMLElement | null>(null);
   const [shown, setShown] = useState(false);
   const reduced = useReducedMotion();
+  const masked = lines || words;
 
   useEffect(() => {
     if (reduced) {
@@ -53,12 +67,12 @@ const Reveal = ({ children, as: Tag = 'div', delay = 0, lines = false, className
   }, [reduced]);
 
   useEffect(() => {
-    if (!lines || reduced) return;
+    if (!masked || reduced) return;
 
     const el = ref.current;
     if (!el) return;
 
-    let restore = splitLines(el);
+    let restore = splitLines(el, words);
     let width = el.getBoundingClientRect().width;
     let frame = 0;
 
@@ -69,14 +83,14 @@ const Reveal = ({ children, as: Tag = 'div', delay = 0, lines = false, className
         if (Math.abs(next - width) < 1) return;
         width = next;
         restore();
-        restore = splitLines(el);
+        restore = splitLines(el, words);
       });
     };
 
     // A webfont swap changes every line break, and it lands after first paint.
     void document.fonts.ready.then(() => {
       restore();
-      restore = splitLines(el);
+      restore = splitLines(el, words);
     });
 
     const observer = new ResizeObserver(resplit);
@@ -87,13 +101,14 @@ const Reveal = ({ children, as: Tag = 'div', delay = 0, lines = false, className
       observer.disconnect();
       restore();
     };
-  }, [lines, reduced]);
+  }, [masked, words, reduced]);
 
   return (
     <Tag
       ref={ref}
       className={cn('reveal', className)}
       data-shown={shown}
+      data-words={words || undefined}
       style={{ ...style, '--reveal-delay': `${delay}ms` } as CSSProperties}
     >
       {children}

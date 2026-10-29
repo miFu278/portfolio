@@ -220,6 +220,16 @@ for (const [i, img] of firstPaint.diagrams.entries()) {
 
 await shot(cdp, 'a-hero-rest');
 
+// Caught mid-reveal: the page is already walked later, and the reveal fires once,
+// so the moment has to be taken on the way in.
+await cdp.evaluate(`(async () => {
+  document.documentElement.style.scrollBehavior = 'auto';
+  const el = document.getElementById('gateway');
+  window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.55);
+})()`, true);
+await sleep(170);
+await shot(cdp, 'h-title-reveal');
+
 // A reader scrolls down through the page, so every lazy raster loads. A jump to
 // the bottom skips them, which is why the shift this guards against only showed
 // up on a walk.
@@ -454,12 +464,18 @@ const arrivals = await cdp.evaluate(`(async () => {
     window.scrollTo(0, Math.max(0, top - window.innerHeight * 0.45));
     await settle();
     const lines = [...el.querySelectorAll('.line')];
+    const words = [...el.querySelectorAll('.line__w')];
     masks.push({
       chapter: el.closest('section')?.id ?? '?',
       lineCount: lines.length,
-      words: el.querySelectorAll('.line__w').length,
+      words: words.length,
+      perWord: el.dataset.words === 'true',
       clipped: lines.every((l) => getComputedStyle(l).overflow === 'hidden'),
       settled: [...el.querySelectorAll('.line__in')].every((i) => getComputedStyle(i).transform === 'none'),
+      wordSettled: words.every((w) => {
+        const cs = getComputedStyle(w);
+        return cs.transform === 'none' && cs.opacity === '1';
+      }),
     });
   }
 
@@ -486,6 +502,16 @@ check(
   unopened.length
     ? unopened.map((m) => `${m.chapter}: ${m.lineCount} lines, clipped ${m.clipped}, settled ${m.settled}`).join(', ')
     : `${arrivals.masks.length} blocks, ${arrivals.masks.reduce((n, m) => n + m.lineCount, 0)} masked lines`,
+);
+
+const perWord = arrivals.masks.filter((m) => m.perWord);
+const unset = perWord.filter((m) => m.words < 3 || !m.wordSettled);
+check(
+  'every chapter title is set word by word',
+  perWord.length >= 5 && unset.length === 0,
+  unset.length
+    ? unset.map((m) => `${m.chapter}: ${m.words} words, settled ${m.wordSettled}`).join(', ')
+    : `${perWord.length} titles, ${perWord.reduce((n, m) => n + m.words, 0)} words, all settled`,
 );
 
 const unwiped = arrivals.figures.filter(

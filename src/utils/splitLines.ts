@@ -1,6 +1,8 @@
 /**
  * Wraps each visual line of a text element in its own clipping box, so an
  * entrance can slide a line up from behind its own box instead of fading it in.
+ * With `perWord` every word also gets an index, so the line can be set word by
+ * word inside the same mask.
  *
  * Lines are found by measuring, not by guessing: every word is wrapped, their
  * offsets decide where the lines break, and the result is written once. The
@@ -9,7 +11,7 @@
  *
  * Returns a restore function.
  */
-export const splitLines = (el: HTMLElement): (() => void) => {
+export const splitLines = (el: HTMLElement, perWord = false): (() => void) => {
   const original = el.innerHTML;
 
   const restore = () => {
@@ -61,6 +63,7 @@ export const splitLines = (el: HTMLElement): (() => void) => {
     inner.style.setProperty('--line-i', String(index));
     group.forEach((word, i) => {
       if (i > 0) inner.append(document.createTextNode(' '));
+      if (perWord) word.style.setProperty('--word-i', String(i));
       inner.append(word);
     });
     line.append(inner);

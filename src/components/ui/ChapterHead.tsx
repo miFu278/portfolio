@@ -20,7 +20,7 @@ const ChapterHead = ({ id, lead }: ChapterHeadProps) => {
         </span>
       </Reveal>
 
-      <Reveal as="h2" delay={80} className="display-l chapter-head__title" lines>
+      <Reveal as="h2" delay={80} className="display-l chapter-head__title" words>
         {c.title}
       </Reveal>
 

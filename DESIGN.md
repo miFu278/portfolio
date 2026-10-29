@@ -185,6 +185,11 @@ and rises out of it, which is the difference between text appearing and text arr
 are rebuilt when the column's width changes and once the webfont lands, because both move the
 line breaks. A masked line keeps the room the plain line had, so the split shifts nothing.
 
+Titles are set word by word inside those boxes, 26ms apart, each word rising and fading up. The
+lead keeps the line-level rise, because a paragraph arriving word by word is noise. The words are
+inline-blocks, so the line box carries `white-space: nowrap`, or a line that exactly fitted as
+plain text could wrap inside its own mask and be clipped away.
+
 The project figure arrives as a wipe down its frame, with the raster settling from a 6% over-scale.
 The wipe sits on the button inside the frame and not on the frame itself: an element clipped to
 nothing never reports itself as intersecting, so a mask on the observed element would never open.

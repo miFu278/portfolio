@@ -718,6 +718,9 @@
 
 .line__in {
   display: block;
+  /* The words are inline-blocks, so a line that exactly fitted as plain text
+     could wrap inside its own mask and be clipped away. */
+  white-space: nowrap;
   transform: translateY(110%);
   transition: transform var(--d-reveal) var(--ease-out);
   transition-delay: calc(var(--reveal-delay, 0ms) + var(--line-i, 0) * 70ms);
@@ -725,6 +728,28 @@
 
 [data-shown='true'] .line__in {
   transform: none;
+}
+
+/* A heading is set rather than slid: the mask stays, and each word rises and
+   fades up inside it on its own beat. The mask still does the clipping, so the
+   line keeps the room it always had and nothing can land on the copy below. */
+[data-words] .line__in {
+  transform: none;
+}
+
+[data-words] .line__w {
+  display: inline-block;
+  transform: translateY(110%);
+  opacity: 0;
+  transition: transform var(--d-reveal) var(--ease-out), opacity 360ms var(--ease-out);
+  transition-delay: calc(
+    var(--reveal-delay, 0ms) + var(--line-i, 0) * 70ms + var(--word-i, 0) * 26ms
+  );
+}
+
+[data-shown='true'][data-words] .line__w {
+  transform: none;
+  opacity: 1;
 }
 
 /* GSAP owns the transform of every scrubbed element: it moves them with the
