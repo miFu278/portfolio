@@ -510,7 +510,8 @@ const beat = await cdp.evaluate(`(async () => {
   if (!stage || !hold || !track) return null;
 
   const top = hold.getBoundingClientRect().top + window.scrollY;
-  const room = hold.getBoundingClientRect().height - window.innerHeight;
+  const spread = Math.round((track.children.length - 1) * stage.clientWidth);
+  const room = Math.round(hold.getBoundingClientRect().height - window.innerHeight);
   const rows = [];
   for (const step of [0, 0.5, 1]) {
     window.scrollTo(0, Math.round(top + step * room));
@@ -518,6 +519,8 @@ const beat = await cdp.evaluate(`(async () => {
     const geometry = {
       x: Number.parseFloat(track.style.getPropertyValue('--services-x')) || 0,
       stageTop: Math.round(stage.getBoundingClientRect().top),
+      opacity: Number.parseFloat(stage.style.opacity || '1'),
+      lifted: (stage.style.transform || '').includes('translate3d'),
     };
     // The active project comes from an IntersectionObserver, which reports a
     // frame or two after the scroll that moved the slide.
@@ -535,31 +538,52 @@ const beat = await cdp.evaluate(`(async () => {
   const slides = [...document.querySelectorAll('.services__list .project')].map(
     (c) => c.offsetHeight,
   );
-  return { room: Math.round(room), rows, slides, vh: window.innerHeight };
+  return { spread, room, dwell: room - spread, rows, slides, vh: window.innerHeight };
 })()`, true);
 
 check(
-  'the services stage holds still while its projects travel sideways',
+  'the projects travel one stage width, then park',
   beat !== null &&
-    beat.rows.every((r) => Math.abs(r.stageTop) <= 1) &&
-    beat.rows[0].x === 0 &&
-    beat.rows[2].x < -beat.room + 40 &&
-    beat.rows[1].x < beat.rows[0].x,
+    Math.abs(beat.rows[0].x) < 1 &&
+    beat.rows[1].x < beat.rows[0].x &&
+    Math.abs(beat.rows[2].x + beat.spread) <= 2,
   beat === null
     ? 'stage missing'
-    : `stage top ${beat.rows.map((r) => r.stageTop).join('/')}, travel ${beat.rows.map((r) => r.x.toFixed(0)).join(' -> ')}px of ${-beat.room}`,
+    : `travel ${beat.rows.map((r) => r.x.toFixed(0)).join(' -> ')} of ${-beat.spread}px`,
 );
 
 check(
-  'every project slide fits the viewport',
-  beat !== null && beat.slides.every((h) => h <= beat.vh),
-  beat === null ? 'stage missing' : `slides ${beat.slides.join('/')}px in ${beat.vh}px`,
+  'the stage holds for extra scroll after the last project',
+  beat !== null &&
+    beat.dwell >= Math.round(beat.vh * 0.35) &&
+    Math.abs(beat.rows[0].stageTop) <= 1 &&
+    Math.abs(beat.rows[1].stageTop) <= 1 &&
+    // By the end of the dwell the release has lifted it off the top edge, which
+    // is the point of the release.
+    beat.rows[2].stageTop < -10,
+  beat === null
+    ? 'stage missing'
+    : `hold ${beat.room}px, ${beat.dwell}px of it after the travel, stage top ${beat.rows.map((r) => r.stageTop).join('/')}`,
+);
+
+check(
+  'the stage releases during the dwell',
+  beat !== null && beat.rows[0].opacity === 1 && beat.rows[2].opacity < 0.7 && beat.rows[2].lifted,
+  beat === null
+    ? 'stage missing'
+    : `opacity ${beat.rows.map((r) => r.opacity.toFixed(2)).join(' -> ')}, lifted ${beat.rows[2].lifted}`,
 );
 
 check(
   'the registry follows whichever project is on the stage',
   beat !== null && beat.rows[0].tech !== beat.rows[2].tech && beat.rows[0].tech.length > 0,
   beat === null ? 'stage missing' : `${beat.rows[0].tech} -> ${beat.rows[2].tech}`,
+);
+
+check(
+  'every project slide fits the viewport',
+  beat !== null && beat.slides.every((h) => h <= beat.vh),
+  beat === null ? 'stage missing' : `slides ${beat.slides.join('/')}px in ${beat.vh}px`,
 );
 
 // The pointer layer: the ring, the magnetic pull, the link wipe, and the figure
@@ -669,31 +693,34 @@ check(
     : `${linkBox.size} -> ${wipe.size}, hover ${wipe.hover}, under ${wipe.under}`,
 );
 
-// Snapping: a stop just short of a chapter boundary finishes the move, and a
-// stop well inside a chapter is left alone. Driven by wheel events, because a
-// scroll made with window.scrollTo is not a scroll as far as Lenis is aware.
+// Snapping: a stop with a chapter boundary in the bottom band of the viewport
+// finishes the move onto that boundary after the idle window. A stop well inside
+// a chapter is left alone. Both cases approach from above, so the page counts as
+// travelling down, which is the direction the rule asks about.
 const gatewayTop = await cdp.evaluate(
   `Math.round(document.getElementById('gateway').getBoundingClientRect().top + window.scrollY)`,
 );
 
-await cdp.evaluate(`window.scrollTo(0, ${gatewayTop} - 400)`);
-await sleep(300);
-await cdp.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: 700, y: 450, deltaX: 0, deltaY: 120 });
-await sleep(120);
-await cdp.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: 700, y: 450, deltaX: 0, deltaY: 120 });
-await sleep(1500);
+const place = async (y) => {
+  await cdp.evaluate(`window.scrollTo(0, 0)`);
+  await sleep(150);
+  await cdp.evaluate(`window.scrollTo(0, ${Math.round(y)})`);
+  await sleep(150);
+};
+
+await place(gatewayTop - (await cdp.evaluate('window.innerHeight')) * 0.78);
+await sleep(4200);
 const snapped = await cdp.evaluate(`Math.round(window.scrollY)`);
 
-await cdp.evaluate(`window.scrollTo(0, ${gatewayTop} + 500)`);
-await sleep(300);
-await cdp.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: 700, y: 450, deltaX: 0, deltaY: 120 });
-await sleep(1500);
+await place(gatewayTop - (await cdp.evaluate('window.innerHeight')) * 0.3);
+const beforeHold = await cdp.evaluate(`Math.round(window.scrollY)`);
+await sleep(4200);
 const held = await cdp.evaluate(`Math.round(window.scrollY)`);
 
 check(
-  'a stop near a chapter boundary snaps, a stop inside one does not',
-  Math.abs(snapped - gatewayTop) <= 3 && held > gatewayTop + 400,
-  `wheeled to ${snapped} and snapped onto the boundary ${gatewayTop}; stopped inside and held at ${held}`,
+  'a touched chapter boundary snaps onto itself after the idle window',
+  Math.abs(snapped - gatewayTop) <= 3 && Math.abs(held - beforeHold) <= 3,
+  `stopped with the boundary in the bottom band and landed at ${snapped} (boundary ${gatewayTop}); stopped inside the chapter and held at ${held}`,
 );
 
 // The figure opens into the viewer from the card's own rect.

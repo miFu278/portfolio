@@ -123,16 +123,18 @@ a source of content.
 
 It is a fixed fraction per frame, not a duration. A duration gives the wheel an easing curve with
 a long tail, and every scrubbed position on the page then chases that already-eased value.
-Measured after one 400px wheel tick, the page settled in 776ms with a 1.05s duration and in 574ms
-with `lerp: 0.2`, and the point at which 90% of the travel was done moved from 334ms to 208ms.
-The first movement comes 8ms after the wheel event.
+Measured after one 400px wheel tick: a 1.05s duration settled in 776ms and reached 90% of the
+travel at 334ms, `lerp: 0.2` settled in 574ms and reached 90% at 208ms, and the shipped
+`lerp: 0.16` settles in 690ms and reaches 90% at 241ms. The first movement comes 8ms after the
+wheel event, so the lag is the curve, not the input.
 
 ### Snap
 
-When the wheel stops within a fifth of a viewport of a chapter boundary, the page finishes the
-move on its own. It only closes a gap in the direction the reader was already going, never pulls
-backwards, and never fires twice for the same boundary, so a position someone chose is not taken
-away from them. A stop well inside a chapter is left exactly where it landed.
+When the reader stops with a chapter boundary inside the bottom band of the viewport going down,
+or the top band going up, the page finishes the move onto that boundary by itself. The idle
+window is 2.4s, the band is 45% of the viewport, and the snap takes 1.1s so it reads as the page
+settling rather than jumping. A stop well inside a chapter is left alone, and a boundary the page
+is already sitting on is ignored.
 
 ### The pointer layer
 
@@ -190,7 +192,10 @@ nothing never reports itself as intersecting, so a mask on the observed element 
 ### The services beat
 
 The two projects are one path as much as the six chapters are, so the stage holds still while the
-track is carried sideways: one slide per viewport, and one spread of scroll room to travel it.
+track is carried sideways: one slide per viewport, one spread of scroll room to travel it, and
+then a dwell of half a viewport before the chapter lets go. The dwell is the release. The stage
+lifts 6%, pulls back to 0.96 and dims to 0.55 across it, so the hold reads as the chapter making
+way instead of the page stalling, and leaving the chapter costs deliberate scrolling.
 
 The stage is `position: sticky` inside a wrapper the hook sizes, not a ScrollTrigger pin. A pin
 spacer is created during a refresh, after the triggers below it have measured, so every chapter

@@ -189,40 +189,64 @@ export const useScrollMotion = () => {
         });
       });
 
-      // 6 · services, pinned. The two projects are one path as much as the six
+      // 6 · services, held. The two projects are one path as much as the six
       // chapters are, so the stage holds still while the track is carried
-      // sideways. The hold is a sticky stage inside a wrapper the hook sizes,
-      // not a ScrollTrigger pin: a pin spacer appears during a refresh, after
-      // the triggers below it have measured, and every chapter under services
-      // then scrubs a wrapper-width too early. The travel is written as a custom
-      // property rather than as a transform, because the track already carries
-      // the velocity shear in CSS and two owners of one transform is how the
-      // chapter title broke once.
+      // sideways, and then holds again after the second project lands: the extra
+      // scroll is a dwell, and leaving the chapter takes deliberate scrolling.
+      //
+      // The hold is a sticky stage inside a wrapper the hook sizes, not a
+      // ScrollTrigger pin: a pin spacer appears during a refresh, after the
+      // triggers below it have measured, and every chapter under services then
+      // scrubs a wrapper-width too early. The sideways travel is written as a
+      // custom property rather than as a transform, because the track already
+      // carries the velocity shear in CSS and one transform has one owner.
+      // One trigger spans travel plus dwell, and its progress is split by hand,
+      // so the two numbers stay independent.
       media.add('(min-width: 1024px)', () => {
         const stage = document.querySelector<HTMLElement>('.services__stage');
         const hold = stage?.parentElement;
         const track = stage?.querySelector<HTMLElement>('.services__list');
         if (!stage || !hold || !track) return;
 
-        const travel = { x: 0 };
         const spread = () => Math.max(0, (track.children.length - 1) * stage.clientWidth);
+        const dwell = () => Math.round(window.innerHeight * 0.5);
 
-        // The wrapper is one viewport plus one spread of scroll room, and it is
+        // The wrapper is one viewport plus the travel plus the dwell, and it is
         // resized before every refresh rather than after, so nothing ever
         // measures a layout that is about to change.
         const room = () => {
-          hold.style.height = `calc(100svh + ${spread()}px)`;
+          hold.style.height = `calc(100svh + ${spread() + dwell()}px)`;
         };
         room();
         ScrollTrigger.addEventListener('refreshInit', room);
 
-        const tween = gsap.to(travel, {
-          x: () => -spread(),
+        const place = (progress: number) => {
+          const gone = progress * (spread() + dwell());
+          const slid = spread() > 0 ? Math.min(1, gone / spread()) : 1;
+          const leave = dwell() > 0 ? Math.max(0, Math.min(1, (gone - spread()) / dwell())) : 0;
+
+          track.style.setProperty('--services-x', `${(-spread() * slid).toFixed(1)}px`);
+
+          // The dwell is a release, not a freeze: the stage lifts, pulls back a
+          // little and dims, so the hold reads as the chapter making way rather
+          // than the page stalling.
+          stage.style.transform = `translate3d(0, ${(-6 * leave).toFixed(2)}%, 0) scale(${(
+            1 - 0.04 * leave
+          ).toFixed(3)})`;
+          stage.style.opacity = `${(1 - 0.45 * leave).toFixed(3)}`;
+        };
+
+        const state = { progress: 0 };
+        const tween = gsap.to(state, {
+          progress: 1,
           ease: 'none',
-          scrollTrigger: { trigger: hold, start: 'top top', end: 'bottom bottom', scrub: true },
-          onUpdate: () => {
-            track.style.setProperty('--services-x', `${travel.x.toFixed(1)}px`);
+          scrollTrigger: {
+            trigger: hold,
+            start: 'top top',
+            end: () => `+=${spread() + dwell()}`,
+            scrub: true,
           },
+          onUpdate: () => place(state.progress),
         });
 
         return () => {
@@ -230,6 +254,8 @@ export const useScrollMotion = () => {
           tween.kill();
           hold.style.removeProperty('height');
           track.style.removeProperty('--services-x');
+          stage.style.removeProperty('transform');
+          stage.style.removeProperty('opacity');
         };
       });
 
