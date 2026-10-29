@@ -154,6 +154,21 @@ The project figure arrives as a wipe down its frame, with the raster settling fr
 The wipe sits on the button inside the frame and not on the frame itself: an element clipped to
 nothing never reports itself as intersecting, so a mask on the observed element would never open.
 
+### The services beat
+
+The two projects are one path as much as the six chapters are, so the stage holds still while the
+track is carried sideways: one slide per viewport, and one spread of scroll room to travel it.
+
+The stage is `position: sticky` inside a wrapper the hook sizes, not a ScrollTrigger pin. A pin
+spacer is created during a refresh, after the triggers below it have measured, so every chapter
+under services then scrubs a wrapper width too early. Sticky needs no spacer and changes nothing
+mid-refresh. The travel is written as `--services-x`, not as a transform, because the track
+already carries the velocity shear in CSS and one transform has one owner.
+
+A slide is exactly one stage tall and the figure takes whatever height is left, so no viewport
+height can push the stats, the tech row and the repo link off it. The registry follows whichever
+slide is on the stage, from the intersection observer that already tracked the active project.
+
 ### One owner per transform
 
 An element gets its transform from one mechanism only. A scrubbed element must not also carry

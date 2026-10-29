@@ -851,12 +851,12 @@
   /* grid items default to min-width:auto, so the 840-wide drawing inside a
      card would stretch the track and push the card under the registry. */
   min-width: 0;
-  /* Velocity layer. The list shears by at most a degree while the page is
-     moving and settles flush when it stops, which is what gives a long page
-     weight. The value is one custom property written on the root, once per
-     frame, by useSmoothScroll. It stays 0 when that hook is off, so reduced
-     motion and a failed script both leave the cards square. */
-  transform: skewY(var(--scroll-skew, 0deg));
+  /* Two scroll-driven values, one composed transform, so neither can overwrite
+     the other: --services-x is the sideways travel written by the pin in
+     useScrollMotion, --scroll-skew is the velocity layer written by
+     useSmoothScroll. Both sit at 0 when their hook is off, so reduced motion
+     and a failed script both leave the cards square and unmoved. */
+  transform: translate3d(var(--services-x, 0px), 0, 0) skewY(var(--scroll-skew, 0deg));
 }
 
 .project {
@@ -1266,6 +1266,68 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+  }
+}
+
+/* The pinned stage. One project at a time, never taller than a viewport, and the
+   pair is carried sideways by useScrollMotion so the chapter has a beat instead
+   of being a list. The stage is sticky rather than ScrollTrigger-pinned: a pin
+   spacer is created during a refresh, after the triggers below it have already
+   measured, and every chapter under services then scrubs 736px too early. A
+   wrapper whose height the hook sets has the same effect on the layout, without
+   moving the layout mid-refresh. The figure takes whatever height is left over
+   and the raster is contained inside it, so no viewport height can push the
+   stats and the repo link off the slide. */
+@media (min-width: 1024px) {
+  .services__pin {
+    position: relative;
+  }
+
+  .services__stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    /* Clearance for the fixed header, on the stage rather than on the card, so
+       the card's own top edge stays visible below it. */
+    padding-top: 88px;
+    overflow: hidden;
+  }
+
+  .services__list {
+    display: flex;
+    gap: 0;
+    width: 100%;
+    /* The track has to be exactly one stage tall, or the slides size to their
+       own content and overrun the viewport instead of letting the figure give
+       way. */
+    height: 100%;
+  }
+
+  .services__list .project {
+    flex: 0 0 100%;
+    height: 100%;
+    min-height: 0;
+    justify-content: flex-start;
+  }
+
+  .project__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .project__diagram,
+  .project__diagram .figure {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .project__diagram img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 }
 

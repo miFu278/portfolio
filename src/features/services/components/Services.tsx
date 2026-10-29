@@ -157,22 +157,26 @@ const Services = () => {
         />
 
         <div className="services__split">
-          <div className="services__list">
-            {PROJECTS.map((project) => (
-              <ProjectBlock
-                key={project.id}
-                project={project}
-                total={PROJECTS.length}
-                register={register(project.id)}
-                onZoom={(p) =>
-                  setZoom(
-                    p.diagram
-                      ? { src: DIAGRAMS[p.diagram].src, alt: `${p.title} architecture` }
-                      : null,
-                  )
-                }
-              />
-            ))}
+          <div className="services__pin">
+            <div className="services__stage">
+              <div className="services__list">
+                {PROJECTS.map((project) => (
+                  <ProjectBlock
+                    key={project.id}
+                    project={project}
+                    total={PROJECTS.length}
+                    register={register(project.id)}
+                    onZoom={(p) =>
+                      setZoom(
+                        p.diagram
+                          ? { src: DIAGRAMS[p.diagram].src, alt: `${p.title} architecture` }
+                          : null,
+                      )
+                    }
+                  />
+                ))}
+              </div>
+            </div>
           </div>
 
           <Registry activeProject={activeProject} />

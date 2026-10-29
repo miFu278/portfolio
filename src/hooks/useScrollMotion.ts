@@ -5,13 +5,14 @@ const REDUCED = '(prefers-reduced-motion: reduce)';
 /**
  * Scroll motion that needs pin/scrub timing, which CSS animation-timeline cannot do.
  *
- * Four effects, all of them scrubbed or staggered by ScrollTrigger:
+ * Five effects, all of them scrubbed or staggered by ScrollTrigger:
  *   1. hero — the name rises word by word
  *   2. chapter titles — rise a fixed 13px inside the heading's own grid gap,
  *      eased in step with scroll position, not a fixed duration
  *   3. project cards — a shallow depth move as they come up
  *   4. hero exit — the opening frame recedes as the first chapter arrives
  *   5. depth — kickers and figures travel faster than the copy between them
+ *   6. services — the stage is pinned and its two projects are carried sideways
  *
  * Nothing here moves body copy. The reading plane keeps its place under the
  * eye, and only things at a distance from it drift, which is what makes the
@@ -36,6 +37,8 @@ export const useScrollMotion = () => {
       ]);
       if (cancelled) return;
       gsap.registerPlugin(ScrollTrigger);
+
+      const media = gsap.matchMedia();
 
       const ctx = gsap.context(() => {
         // 1 · hero name, word by word
@@ -177,7 +180,62 @@ export const useScrollMotion = () => {
         });
       });
 
-      revert = () => ctx.revert();
+      // 6 · services, pinned. The two projects are one path as much as the six
+      // chapters are, so the stage holds still while the track is carried
+      // sideways. The hold is a sticky stage inside a wrapper the hook sizes,
+      // not a ScrollTrigger pin: a pin spacer appears during a refresh, after
+      // the triggers below it have measured, and every chapter under services
+      // then scrubs a wrapper-width too early. The travel is written as a custom
+      // property rather than as a transform, because the track already carries
+      // the velocity shear in CSS and two owners of one transform is how the
+      // chapter title broke once.
+      media.add('(min-width: 1024px)', () => {
+        const stage = document.querySelector<HTMLElement>('.services__stage');
+        const hold = stage?.parentElement;
+        const track = stage?.querySelector<HTMLElement>('.services__list');
+        if (!stage || !hold || !track) return;
+
+        const travel = { x: 0 };
+        const spread = () => Math.max(0, (track.children.length - 1) * stage.clientWidth);
+
+        // The wrapper is one viewport plus one spread of scroll room, and it is
+        // resized before every refresh rather than after, so nothing ever
+        // measures a layout that is about to change.
+        const room = () => {
+          hold.style.height = `calc(100svh + ${spread()}px)`;
+        };
+        room();
+        ScrollTrigger.addEventListener('refreshInit', room);
+
+        const tween = gsap.to(travel, {
+          x: () => -spread(),
+          ease: 'none',
+          scrollTrigger: { trigger: hold, start: 'top top', end: 'bottom bottom', scrub: true },
+          onUpdate: () => {
+            track.style.setProperty('--services-x', `${travel.x.toFixed(1)}px`);
+          },
+        });
+
+        return () => {
+          ScrollTrigger.removeEventListener('refreshInit', room);
+          tween.kill();
+          hold.style.removeProperty('height');
+          track.style.removeProperty('--services-x');
+        };
+      });
+
+      // The pin adds its own height below everything already measured, so the
+      // triggers created before it are re-measured on the next frame, once the
+      // pin spacer exists. A refresh in the same pass still sees the old layout
+      // and leaves the chapters under services scrubbing 736px too early.
+      requestAnimationFrame(() => {
+        if (!cancelled) ScrollTrigger.refresh();
+      });
+
+      revert = () => {
+        media.revert();
+        ctx.revert();
+      };
     })();
 
     return () => {

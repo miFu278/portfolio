@@ -341,9 +341,14 @@ const scrubbed = await cdp.evaluate(`(async () => {
   for (const el of document.querySelectorAll(selector)) {
     const box = el.getBoundingClientRect();
     const top = box.top + window.scrollY;
+    const from = Math.max(0, top - window.innerHeight);
+    const to = top + box.height;
+    // Sampled across the whole transit rather than at its two ends: the last
+    // chapters sit close enough to the end of the page that a full transit is
+    // not always reachable, and the clamp would read as "does not move".
     const amplitude = [];
-    for (const y of [Math.max(0, top - window.innerHeight + 2), top + box.height + 2]) {
-      window.scrollTo(0, y);
+    for (const step of [0, 0.25, 0.5, 0.75, 1]) {
+      window.scrollTo(0, Math.round(from + (to - from) * step));
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
       amplitude.push(Math.abs(shift(el)));
     }
@@ -494,6 +499,63 @@ check(
     : `${arrivals.figures.length} figures, wiped open and settled`,
 );
 
+// The services beat: the stage must hold still while the projects travel, the
+// slides must fit the viewport, and the registry must follow whichever slide is
+// on screen. All three are read from the page as it stands.
+const beat = await cdp.evaluate(`(async () => {
+  document.documentElement.style.scrollBehavior = 'auto';
+  const stage = document.querySelector('.services__stage');
+  const hold = stage?.parentElement;
+  const track = document.querySelector('.services__list');
+  if (!stage || !hold || !track) return null;
+
+  const top = hold.getBoundingClientRect().top + window.scrollY;
+  const room = hold.getBoundingClientRect().height - window.innerHeight;
+  const rows = [];
+  for (const step of [0, 0.5, 1]) {
+    window.scrollTo(0, Math.round(top + step * room));
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    rows.push({
+      x: Number.parseFloat(track.style.getPropertyValue('--services-x')) || 0,
+      stageTop: Math.round(stage.getBoundingClientRect().top),
+      tech: [...document.querySelectorAll('.registry .tech[data-active="true"]')]
+        .map((t) => t.textContent)
+        .join('|'),
+    });
+  }
+
+  // offsetHeight, not the rect: the velocity layer shears the track, and a
+  // sheared box reports a taller bounding rect than the layout box it occupies.
+  const slides = [...document.querySelectorAll('.services__list .project')].map(
+    (c) => c.offsetHeight,
+  );
+  return { room: Math.round(room), rows, slides, vh: window.innerHeight };
+})()`, true);
+
+check(
+  'the services stage holds still while its projects travel sideways',
+  beat !== null &&
+    beat.rows.every((r) => Math.abs(r.stageTop) <= 1) &&
+    beat.rows[0].x === 0 &&
+    beat.rows[2].x < -beat.room + 40 &&
+    beat.rows[1].x < beat.rows[0].x,
+  beat === null
+    ? 'stage missing'
+    : `stage top ${beat.rows.map((r) => r.stageTop).join('/')}, travel ${beat.rows.map((r) => r.x.toFixed(0)).join(' -> ')}px of ${-beat.room}`,
+);
+
+check(
+  'every project slide fits the viewport',
+  beat !== null && beat.slides.every((h) => h <= beat.vh),
+  beat === null ? 'stage missing' : `slides ${beat.slides.join('/')}px in ${beat.vh}px`,
+);
+
+check(
+  'the registry follows whichever project is on the stage',
+  beat !== null && beat.rows[0].tech !== beat.rows[2].tech && beat.rows[0].tech.length > 0,
+  beat === null ? 'stage missing' : `${beat.rows[0].tech} -> ${beat.rows[2].tech}`,
+);
+
 // The hero recedes with the scroll instead of cutting to chapter 02. Three
 // numbers carry that: the foreground shrinks, it lifts further than the
 // backdrop does, and it dims without vanishing.
@@ -561,15 +623,18 @@ await cdp.evaluate(`(async () => {
 })()`, true);
 await shot(cdp, 'b-hero-exit');
 
-for (const [name, id] of [
-  ['c-chapter-02', 'gateway'],
-  ['d-mid-services', 'services'],
-  ['e-chapter-05', 'observability'],
-]) {
+const STOPS = [
+  ['c-chapter-02', `document.getElementById('gateway')`, -120],
+  ['d-services-01', `document.querySelector('.services__pin')`, 40],
+  ['d-services-02', `document.querySelector('.services__pin')`, 640],
+  ['e-chapter-05', `document.getElementById('observability')`, -120],
+];
+
+for (const [name, getter, offset] of STOPS) {
   await cdp.evaluate(`(async () => {
-    const el = document.getElementById(${JSON.stringify(id)});
+    const el = ${getter};
     document.documentElement.style.scrollBehavior = 'auto';
-    window.scrollTo(0, Math.max(0, el.getBoundingClientRect().top + window.scrollY - 120));
+    window.scrollTo(0, Math.max(0, el.getBoundingClientRect().top + window.scrollY + ${offset}));
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     await new Promise((r) => setTimeout(r, 700));
   })()`, true);
