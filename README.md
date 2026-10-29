@@ -53,7 +53,7 @@ src/
 ├── pages/        Home.tsx — composes the chapters, owns no logic
 ├── styles/       tokens.css (design tokens) · app.css (layout + components)
 ├── types/        index.ts
-└── utils/        cn.ts
+└── utils/        cn.ts · splitLines.ts
 ```
 
 **Editing content never means editing a component.** Copy, project data, technologies,

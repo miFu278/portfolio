@@ -702,13 +702,62 @@
   max-width: 22ch;
 }
 
+/* Masked lines. splitLines wraps every rendered line in a `.line` box and moves
+   its text into `.line__in`, so the entrance raises the line from behind its own
+   box instead of fading it. The padding pays for descenders and the negative
+   margin cancels the space that padding would add, so a masked line occupies
+   exactly the room the plain line did. */
+.line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.2em;
+  margin-bottom: -0.2em;
+}
+
+.line__in {
+  display: block;
+  transform: translateY(110%);
+  transition: transform var(--d-reveal) var(--ease-out);
+  transition-delay: calc(var(--reveal-delay, 0ms) + var(--line-i, 0) * 70ms);
+}
+
+[data-shown='true'] .line__in {
+  transform: none;
+}
+
 /* GSAP owns the transform of every scrubbed element: it moves them with the
    scroll. The reveal's 750ms transform transition would make the scrub chase
    the scroll instead of following it, so these transition opacity only. */
 .chapter-head__kicker,
-.chapter-head__title,
+.chapter-head__title {
+  transition-property: opacity;
+}
+
+/* The figure is scrubbed, so it cannot transition transform either. */
 .project__diagram {
   transition-property: opacity;
+}
+
+/* The wipe lives on the button inside the frame, not on the frame itself: an
+   element clipped away to nothing never reports itself as intersecting, so a
+   mask on the observed element would never open. The raster settles from a
+   slight over-scale as the wipe passes. */
+.figure {
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path var(--d-chapter) var(--ease-out) var(--reveal-delay, 0ms);
+}
+
+[data-shown='true'] .figure {
+  clip-path: inset(0 0 0 0);
+}
+
+.figure img {
+  transform: scale(1.06);
+  transition: transform var(--d-chapter) var(--ease-out);
+}
+
+[data-shown='true'] .figure img {
+  transform: none;
 }
 
 /* =================================================================== gateway */

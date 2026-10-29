@@ -432,6 +432,68 @@ check(
     : 'every title rests at translateY 0',
 );
 
+// Text entrances and the figure wipe. Both are measured after scrolling the
+// element into its reading position and letting the transition finish, so a
+// mask that never opens, or a wipe that never completes, fails here.
+const arrivals = await cdp.evaluate(`(async () => {
+  document.documentElement.style.scrollBehavior = 'auto';
+  const settle = async () => {
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    await new Promise((r) => setTimeout(r, 1000));
+  };
+  const masks = [];
+  const figures = [];
+
+  for (const el of document.querySelectorAll('.chapter-head__title, .chapter-head .lead')) {
+    const top = el.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo(0, Math.max(0, top - window.innerHeight * 0.45));
+    await settle();
+    const lines = [...el.querySelectorAll('.line')];
+    masks.push({
+      chapter: el.closest('section')?.id ?? '?',
+      lineCount: lines.length,
+      words: el.querySelectorAll('.line__w').length,
+      clipped: lines.every((l) => getComputedStyle(l).overflow === 'hidden'),
+      settled: [...el.querySelectorAll('.line__in')].every((i) => getComputedStyle(i).transform === 'none'),
+    });
+  }
+
+  for (const fig of document.querySelectorAll('.project__diagram')) {
+    const top = fig.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo(0, Math.max(0, top - window.innerHeight * 0.5));
+    await settle();
+    const wipe = fig.querySelector('.figure');
+    const img = fig.querySelector('img');
+    figures.push({
+      shown: fig.dataset.shown,
+      clip: wipe ? getComputedStyle(wipe).clipPath : 'missing',
+      imageScale: img ? getComputedStyle(img).transform : 'missing',
+    });
+  }
+
+  return { masks, figures };
+})()`, true);
+
+const unopened = arrivals.masks.filter((m) => m.lineCount < 1 || m.words < 2 || !m.clipped || !m.settled);
+check(
+  'every chapter line arrives through its own mask',
+  unopened.length === 0 && arrivals.masks.length >= 6,
+  unopened.length
+    ? unopened.map((m) => `${m.chapter}: ${m.lineCount} lines, clipped ${m.clipped}, settled ${m.settled}`).join(', ')
+    : `${arrivals.masks.length} blocks, ${arrivals.masks.reduce((n, m) => n + m.lineCount, 0)} masked lines`,
+);
+
+const unwiped = arrivals.figures.filter(
+  (f) => f.shown !== 'true' || f.clip !== 'inset(0px)' || f.imageScale !== 'none',
+);
+check(
+  'every project figure wipes in and settles',
+  unwiped.length === 0 && arrivals.figures.length > 0,
+  unwiped.length
+    ? unwiped.map((f) => `shown ${f.shown}, clip ${f.clip}, image ${f.imageScale}`).join(' | ')
+    : `${arrivals.figures.length} figures, wiped open and settled`,
+);
+
 // The hero recedes with the scroll instead of cutting to chapter 02. Three
 // numbers carry that: the foreground shrinks, it lifts further than the
 // backdrop does, and it dims without vanishing.

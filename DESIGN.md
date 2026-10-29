@@ -143,6 +143,17 @@ Down the page the same stack runs smaller. Chapter kickers travel 8px against th
 project figures 12px, and the copy between them not at all. Each sits at 0 at its reading
 position and is off home only while entering or leaving.
 
+### Text and figures
+
+Chapter titles and leads arrive through a mask. Each rendered line sits in its own clipping box
+and rises out of it, which is the difference between text appearing and text arriving. The boxes
+are rebuilt when the column's width changes and once the webfont lands, because both move the
+line breaks. A masked line keeps the room the plain line had, so the split shifts nothing.
+
+The project figure arrives as a wipe down its frame, with the raster settling from a 6% over-scale.
+The wipe sits on the button inside the frame and not on the frame itself: an element clipped to
+nothing never reports itself as intersecting, so a mask on the observed element would never open.
+
 ### One owner per transform
 
 An element gets its transform from one mechanism only. A scrubbed element must not also carry
