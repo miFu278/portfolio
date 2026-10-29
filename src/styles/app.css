@@ -700,9 +700,14 @@
 
 .chapter-head__title {
   max-width: 22ch;
-  /* GSAP owns the transform of this element: it scrubs the title's rise with
-     the scroll. The reveal's 750ms transform transition would make the scrub
-     chase the scroll instead of following it, so only opacity transitions. */
+}
+
+/* GSAP owns the transform of every scrubbed element: it moves them with the
+   scroll. The reveal's 750ms transform transition would make the scrub chase
+   the scroll instead of following it, so these transition opacity only. */
+.chapter-head__kicker,
+.chapter-head__title,
+.project__diagram {
   transition-property: opacity;
 }
 

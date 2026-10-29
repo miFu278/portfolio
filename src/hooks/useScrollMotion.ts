@@ -10,7 +10,12 @@ const REDUCED = '(prefers-reduced-motion: reduce)';
  *   2. chapter titles — rise a fixed 13px inside the heading's own grid gap,
  *      eased in step with scroll position, not a fixed duration
  *   3. project cards — a shallow depth move as they come up
- *   4. hero exit — the opening frame lifts and dims as the first chapter arrives
+ *   4. hero exit — the opening frame recedes as the first chapter arrives
+ *   5. depth — kickers and figures travel faster than the copy between them
+ *
+ * Nothing here moves body copy. The reading plane keeps its place under the
+ * eye, and only things at a distance from it drift, which is what makes the
+ * page read as layers instead of a flat sheet.
  *
  * GSAP is imported dynamically so it lands in its own chunk: the first paint
  * ships none of it. Everything below is skipped outright when the user asks for
@@ -91,18 +96,43 @@ export const useScrollMotion = () => {
         });
 
         // 4 · hero exit. Without this the opening frame is inert once its
-        // entrance is over and the first chapter arrives as a cut. The shell
-        // lifts and dims with the scroll, so leaving 01 reads as the camera
-        // pulling back. The scroll cue is furniture and goes first.
+        // entrance is over and the first chapter arrives as a cut. The
+        // foreground recedes: it shrinks, lifts faster than the backdrop and
+        // dims to a third, while the backdrop scales up and drifts with the
+        // scroll. Two layers leaving at different rates is what reads as a
+        // camera pulling back rather than a page fading out. The scroll cue is
+        // furniture and goes first.
         const hero = document.querySelector<HTMLElement>('#ingress');
-        const heroShell = hero?.querySelector<HTMLElement>('.shell');
-        if (hero && heroShell) {
-          gsap.to(heroShell, {
-            yPercent: -9,
-            opacity: 0.1,
-            ease: 'none',
-            scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true },
+        if (hero) {
+          const depth = () => ({
+            trigger: hero,
+            start: 'top top',
+            end: 'bottom top',
+            scrub: true,
           });
+
+          const shell = hero.querySelector<HTMLElement>('.shell');
+          if (shell) {
+            gsap.to(shell, {
+              scale: 0.93,
+              yPercent: -16,
+              opacity: 0.35,
+              ease: 'none',
+              scrollTrigger: depth(),
+            });
+          }
+
+          // The backdrop covers the hero, so it has to grow as it drifts or it
+          // uncovers the page background at an edge.
+          const backdrop = hero.querySelector<HTMLElement>('.hero__canvas');
+          if (backdrop) {
+            gsap.to(backdrop, {
+              scale: 1.12,
+              yPercent: -6,
+              ease: 'none',
+              scrollTrigger: depth(),
+            });
+          }
 
           const cue = hero.querySelector<HTMLElement>('.hero__scroll');
           if (cue) {
@@ -113,6 +143,38 @@ export const useScrollMotion = () => {
             });
           }
         }
+
+        // 5 · depth across the page. Kickers and figures travel the other way
+        // from the scroll, so each chapter reads as a layer under the copy. At
+        // the reading position both sit at 0; they are only off home while
+        // entering or leaving. Each amplitude stays inside the space that
+        // element owns, so nothing can land on a neighbour.
+        gsap.utils.toArray<HTMLElement>('.chapter-head__kicker').forEach((el) => {
+          gsap.fromTo(
+            el,
+            { y: 8 },
+            {
+              y: -8,
+              ease: 'none',
+              scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: true },
+            },
+          );
+        });
+
+        // The frame moves as one piece. Panning the raster inside it would zoom
+        // a diagram whose labels are already small, and cropping it would lose
+        // the edge of the drawing.
+        gsap.utils.toArray<HTMLElement>('.project__diagram').forEach((el) => {
+          gsap.fromTo(
+            el,
+            { y: 12 },
+            {
+              y: -12,
+              ease: 'none',
+              scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: true },
+            },
+          );
+        });
       });
 
       revert = () => ctx.revert();

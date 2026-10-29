@@ -265,64 +265,78 @@ check(
   `--rail-y ${last.railY} vs mark ${last.marks[last.marks.length - 1]} at scrollY ${last.scrollY}`,
 );
 
-// Every title is still below its own entrance at scroll 0, so the composed
-// translateY there is the rise the scrub applies at full displacement. The box
-// measurement clears transforms first: a transform reserves no space, so the
-// layout gap is all the displacement has to fit in.
-const titles = await cdp.evaluate(`(async () => {
+// Every scrubbed element is measured at both ends of its own transit, because
+// a transform reserves no space: what it may not do is travel further than the
+// layout gap around it. The gaps are read with every transform cleared.
+const scrubbed = await cdp.evaluate(`(async () => {
   document.documentElement.style.scrollBehavior = 'auto';
-  window.scrollTo(0, 0);
-  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const selector = '.chapter-head__kicker, .chapter-head__title, .project__diagram';
   const shift = (el) => {
     const m = getComputedStyle(el).transform;
     return m === 'none' ? 0 : +m.split(', ').pop().replace(')', '');
   };
   const out = [];
-  for (const head of document.querySelectorAll('.chapter-head')) {
-    const title = head.querySelector('.chapter-head__title');
-    const lead = head.querySelector('.lead');
-    if (!title) continue;
-    const rise = shift(title);
+  for (const el of document.querySelectorAll(selector)) {
+    const box = el.getBoundingClientRect();
+    const top = box.top + window.scrollY;
+    const amplitude = [];
+    for (const y of [Math.max(0, top - window.innerHeight + 2), top + box.height + 2]) {
+      window.scrollTo(0, y);
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      amplitude.push(Math.abs(shift(el)));
+    }
 
-    const keptTitle = title.style.transform;
-    const keptLead = lead ? lead.style.transform : '';
-    title.style.transform = 'none';
-    if (lead) lead.style.transform = 'none';
-    const titleBox = title.getBoundingClientRect();
-    const leadTop = lead ? lead.getBoundingClientRect().top : null;
-    title.style.transform = keptTitle;
-    if (lead) lead.style.transform = keptLead;
+    const neighbours = [el, el.previousElementSibling, el.nextElementSibling].filter(Boolean);
+    const kept = neighbours.map((n) => [n, n.style.transform]);
+    neighbours.forEach((n) => { n.style.transform = 'none'; });
+    const plain = el.getBoundingClientRect();
+    const gapAbove = el.previousElementSibling
+      ? +(plain.top - el.previousElementSibling.getBoundingClientRect().bottom).toFixed(1)
+      : null;
+    const gapBelow = el.nextElementSibling
+      ? +(el.nextElementSibling.getBoundingClientRect().top - plain.bottom).toFixed(1)
+      : null;
+    kept.forEach(([n, value]) => { n.style.transform = value; });
 
     out.push({
-      chapter: head.closest('section')?.id ?? '?',
-      gap: leadTop === null ? null : +(leadTop - titleBox.bottom).toFixed(2),
-      rise: +rise.toFixed(2),
-      transition: getComputedStyle(title).transitionProperty,
+      name: el.className.split(' ').pop(),
+      chapter: el.closest('section')?.id ?? '?',
+      amplitude: +Math.max(...amplitude).toFixed(1),
+      gapAbove,
+      gapBelow,
+      transition: getComputedStyle(el).transitionProperty,
     });
   }
   return out;
 })()`, true);
 
-const gapFloor = Math.min(...titles.filter((t) => t.gap !== null).map((t) => t.gap));
-const riseCeiling = Math.max(...titles.map((t) => t.rise));
+const still = scrubbed.filter((s) => s.amplitude < 1);
 check(
-  'the scrub actually moves the title',
-  riseCeiling > 6,
-  `full displacement ${riseCeiling}px`,
-);
-check(
-  'the title has room for its own rise above the lead',
-  gapFloor >= riseCeiling,
-  `smallest gap ${gapFloor}px against a ${riseCeiling}px rise`,
+  'every scrubbed element actually moves',
+  still.length === 0,
+  still.length
+    ? still.map((s) => `${s.name} in ${s.chapter}`).join(', ')
+    : `${scrubbed.length} elements, amplitudes ${[...new Set(scrubbed.map((s) => s.amplitude))].join(', ')}px`,
 );
 
-const transitions = titles.filter((t) => t.transition.includes('transform'));
+const room = (s) => Math.min(s.gapAbove ?? Number.POSITIVE_INFINITY, s.gapBelow ?? Number.POSITIVE_INFINITY);
+const crowded = scrubbed.filter((s) => s.amplitude > room(s));
+const tightest = Math.min(...scrubbed.map((s) => room(s) - s.amplitude));
 check(
-  'the scrub is not smoothed by a CSS transform transition',
-  transitions.length === 0,
-  transitions.length
-    ? transitions.map((t) => t.chapter).join(', ')
-    : 'transform untransitioned on every title',
+  'every scrubbed element stays inside the space it owns',
+  crowded.length === 0,
+  crowded.length
+    ? crowded.map((s) => `${s.name} in ${s.chapter} travels ${s.amplitude}px into ${room(s)}px`).join(', ')
+    : `tightest margin ${tightest.toFixed(1)}px`,
+);
+
+const smoothed = scrubbed.filter((s) => s.transition.includes('transform'));
+check(
+  'no scrub is smoothed by a CSS transform transition',
+  smoothed.length === 0,
+  smoothed.length
+    ? smoothed.map((s) => `${s.name} in ${s.chapter}`).join(', ')
+    : `transform untransitioned on all ${scrubbed.length}`,
 );
 
 // Past its own entrance, a title must sit in its layout box, not below it.
@@ -349,23 +363,50 @@ check(
     : 'every title rests at translateY 0',
 );
 
-// The hero exits with the scroll instead of cutting to chapter 02.
+// The hero recedes with the scroll instead of cutting to chapter 02. Three
+// numbers carry that: the foreground shrinks, it lifts further than the
+// backdrop does, and it dims without vanishing.
 const heroStops = await cdp.evaluate(`(async () => {
   document.documentElement.style.scrollBehavior = 'auto';
   const shell = document.querySelector('#ingress .shell');
+  const backdrop = document.querySelector('#ingress .hero__canvas');
   const cue = document.querySelector('#ingress .hero__scroll');
+  const matrix = (el) => {
+    const t = el ? getComputedStyle(el).transform : 'none';
+    if (t === 'none') return [1, 0, 0, 1, 0, 0];
+    return t.slice(t.indexOf('(') + 1, -1).split(',').map(Number);
+  };
   const out = {};
-  for (const [name, y] of [['top', 0], ['mid', 380], ['end', Math.round(window.innerHeight * 0.9)]]) {
+  const vh = window.innerHeight;
+  for (const [name, y] of [['top', 0], ['mid', Math.round(vh * 0.5)], ['end', vh]]) {
     window.scrollTo(0, y);
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     await new Promise((r) => setTimeout(r, 250));
+    const fg = matrix(shell);
+    const bg = matrix(backdrop);
     out[name] = {
+      scale: +fg[0].toFixed(3),
+      lift: +fg[5].toFixed(1),
       opacity: +Number.parseFloat(getComputedStyle(shell).opacity).toFixed(3),
+      backdropScale: +bg[0].toFixed(3),
+      backdropLift: +bg[5].toFixed(1),
       cue: cue ? +Number.parseFloat(getComputedStyle(cue).opacity).toFixed(3) : null,
     };
   }
   return out;
 })()`, true);
+
+const separation = heroStops.mid.lift - heroStops.mid.backdropLift;
+check(
+  'the hero foreground recedes instead of fading out',
+  heroStops.end.scale <= 0.94 && heroStops.end.lift <= -50 && heroStops.end.opacity >= 0.3,
+  `scale ${heroStops.top.scale} -> ${heroStops.end.scale}, lift ${heroStops.end.lift}px, opacity ${heroStops.top.opacity} -> ${heroStops.end.opacity}`,
+);
+check(
+  'the hero backdrop moves against the foreground',
+  separation <= -20 && heroStops.mid.backdropScale > 1,
+  `foreground ${separation.toFixed(1)}px further up than the backdrop at mid, backdrop scale ${heroStops.top.backdropScale} -> ${heroStops.end.backdropScale}`,
+);
 check(
   'the hero dims as the first chapter arrives',
   heroStops.end.opacity < heroStops.top.opacity - 0.2,

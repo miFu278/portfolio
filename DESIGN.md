@@ -91,8 +91,8 @@ rail sits outside it and only appears at ≥1360px, where there is margin to hol
 ## 5. Motion
 
 - `--ease-out` everywhere, `--d-micro` (180ms) through `--d-chapter` (1100ms).
-- One spectacle: the topology canvas behind the hero. Everything else moves only to reveal
-  hierarchy.
+- One spectacle: the topology canvas behind the hero. The rest is depth and hierarchy, so what
+  moves says how far away it is or which layer it belongs to.
 - `Reveal` fires once and never reverses. Content that vanishes on scroll-up is worse than
   no animation.
 - `prefers-reduced-motion` renders a complete static page: reveals are instant and the canvas
@@ -104,20 +104,36 @@ Two kinds of motion, one rule each.
 
 An **entrance** (`Reveal`) fires once and never reverses. A **positional** effect is scrubbed
 by scroll position and runs both ways, because scrolling back must restore the page it left.
-The hero exit is positional: the shell lifts 9% and dims to 0.1 as the first chapter arrives,
-and the scroll cue fades out over the first 40% of that range. Neither is an entrance, so
-neither can leave a reader with a dimmed hero they cannot scroll away from.
+Nothing positional here is an entrance, so nothing can leave a reader with content they cannot
+scroll back for.
+
+### Depth
+
+The reading plane does not move. Body copy keeps its place under the eye, and only what sits at
+a distance from it drifts, which is what makes the page read as layers instead of a flat sheet.
+
+The hero is that stack at full size. Leaving 01 pulls the camera back: the foreground shrinks
+to 0.93, lifts and dims to 0.35 while the topology backdrop grows to 1.12 and drifts with the
+scroll. The two layers separate by about 24px at mid-transit and 47px at the end. The scroll
+cue is furniture and goes first, over the first 40% of the range. A dim alone read as a page
+fading out; the scale and the counter-moving backdrop are what read as depth.
+
+Down the page the same stack runs smaller. Chapter kickers travel 8px against the scroll,
+project figures 12px, and the copy between them not at all. Each sits at 0 at its reading
+position and is off home only while entering or leaving.
 
 ### One owner per transform
 
 An element gets its transform from one mechanism only. A scrubbed element must not also carry
 an entrance transform, and must not inherit a transition on `transform`. A 750ms transition
 makes a per-frame scrub chase the scroll instead of following it, and the element arrives late.
-`.chapter-head__title` therefore transitions opacity only, and GSAP owns its position.
+The scrubbed elements therefore transition opacity only, and GSAP owns their position.
 
-A scrubbed displacement must also fit the space it moves into. A transform reserves no space,
-so the chapter title rises 13px inside the 16px grid gap above its lead paragraph. Percentages
-of the element's own height do not hold that promise: a three line title at 14% overruns the gap.
+A scrubbed displacement must also fit the space it moves into, because a transform reserves no
+space. The chapter title rises 13px inside the 16px grid gap above its lead, the kicker travels
+8px inside that same gap, and a figure 12px inside the 24px it owns above and below.
+Percentages of the element's own height do not hold that promise: a three line title at 14%
+overran the gap and landed on the lead.
 
 ### Chapter rail packet
 
