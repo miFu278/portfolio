@@ -514,48 +514,134 @@
 }
 
 /* The role is the one line on the page that says what the work is rather than
-   what the page is, so it gets its own voice: a serif italic, in the signal
-   colour, against the grotesque display and the mono. Only the first word
-   changes; the slot is right-aligned and as wide as the longest of them, so the
-   word after it never shifts. */
+   what the page is, and it is split in two: the word that changes is the accent
+   and gets the serif and the colour, the word after it is set in the page face
+   and only gets out of the way. Nothing is pinned: the tail sits in normal flow,
+   so it follows the width of the word in front of it. */
 .hero__role {
   display: flex;
   align-items: baseline;
-  gap: 0.3em;
   margin-top: var(--sp-6);
+  font-size: clamp(1.75rem, 3.4vw, 2.75rem);
+  line-height: 1.15;
+}
+
+.role {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.26em;
+}
+
+.role__accent {
+  position: relative;
+  display: inline-block;
   font-family: var(--font-role);
   font-style: italic;
-  font-size: clamp(1.75rem, 3.4vw, 2.75rem);
-  line-height: 1.05;
   color: var(--signal);
 }
 
-.hero__role__slot {
-  /* Every word in the same grid cell, so the cell is exactly as wide as the
-     longest of them and the tail after it never moves. The mask is a clip-path
-     with negative top and side insets rather than overflow: that way an
-     ascender is never cut and the incoming word still enters from outside. This
-     is the trick kigo.studio uses on "Make your website cool". */
-  display: inline-grid;
-  clip-path: inset(-0.6em -0.3em 0 -0.3em);
+.role__word {
+  display: inline-block;
+  white-space: nowrap;
 }
 
-.hero__role__slot > * {
-  grid-area: 1 / 1;
-  justify-self: end;
+.role__word--out {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
 }
 
-.hero__role__ghost {
-  visibility: hidden;
+/* Left to right, a character at a time: the word comes apart rather than being
+   swapped out, which is the effect the reference site gets from petals. */
+.role__char {
+  display: inline-block;
+  animation: roleCharIn 340ms var(--ease-out) both;
+  animation-delay: calc(180ms + var(--i, 0) * 28ms);
 }
 
-.hero__role__in {
-  animation: roleRise 620ms var(--ease-rise) both;
+.role__word--out .role__char {
+  animation: roleCharOut 300ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 28ms);
 }
 
-@keyframes roleRise {
+@keyframes roleCharIn {
   from {
-    transform: translateY(105%);
+    opacity: 0;
+  }
+}
+
+@keyframes roleCharOut {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Glyph fragments thrown off by each swap. Decoration, hidden from the reader.
+   They fall and drift outward rather than rising, so they never cross the claim
+   above the line. */
+.role__bits {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+
+.role__bit {
+  position: absolute;
+  left: calc(14% + var(--n, 0) * 16%);
+  top: 22%;
+  font-family: var(--font-mono);
+  font-size: 0.4em;
+  color: var(--signal);
+  opacity: 0;
+  animation: roleBit 820ms var(--ease-out) both;
+  animation-delay: calc(60ms + var(--n, 0) * 40ms);
+}
+
+@keyframes roleBit {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0);
+  }
+
+  20% {
+    opacity: 0.7;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(var(--drift, 1) * 0.9em), 0.85em, 0);
+  }
+}
+
+/* The tail dips out of its own clip and comes back up, so the line reads as
+   stepping to the next word rather than cutting to it. */
+.role__tail {
+  display: inline-block;
+  clip-path: inset(-0.6em -0.25em 0 -0.25em);
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.role__tail-in {
+  display: inline-block;
+  animation: tailDip 980ms var(--ease-rise) both;
+}
+
+@keyframes tailDip {
+  0% {
+    transform: translateY(0);
+  }
+
+  42%,
+  47% {
+    transform: translateY(112%);
+  }
+
+  100% {
+    transform: translateY(0);
   }
 }
 
@@ -588,8 +674,15 @@
     display: none;
   }
 
-  .hero__role__in {
+  .role__char,
+  .role__word--out .role__char,
+  .role__tail-in {
     animation: none;
+  }
+
+  .role__word--out,
+  .role__bits {
+    display: none;
   }
 }
 .hero__lead {

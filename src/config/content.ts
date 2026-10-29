@@ -39,7 +39,7 @@ export const PROFILE = {
     'I build the screen that explains it.',
   ],
   /** What the hero cycles through under the claim. The tail word never moves. */
-  roles: ['Backend', 'FullStack', 'AI', 'Frontend'],
+  roles: ['AI', 'FullStack', 'Frontend', 'Backend'],
   roleTail: 'Engineering',
   lead: 'APIs, distributed systems, data-intensive applications, and the React on top of them. Currently researching out-of-distribution detection.',
   siteUrl: 'https://portfolio.mifu278.workers.dev',
