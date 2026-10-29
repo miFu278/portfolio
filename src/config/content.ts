@@ -25,16 +25,23 @@ import type {
 export const PROFILE = {
   name: 'Than Trinh Minh Phuc',
   alias: 'miFu',
-  role: 'Backend Software Engineer',
+  role: 'Fullstack Software Engineer',
   location: 'Ho Chi Minh City, Vietnam',
   timezone: 'ICT',
   email: 'phucttm.dev@gmail.com',
   phone: '+84 375 331 022',
   github: 'https://github.com/miFu278',
   availability: 'Available for work — Q3 2026',
-  /** Hero display line. Not a job title: a claim. */
-  claim: 'I build the part you never see.',
-  lead: 'Backend engineer in Ho Chi Minh City. APIs, distributed systems, data-intensive applications — Go and .NET. Currently researching out-of-distribution detection.',
+  /** Hero display lines. Not a job title: a claim. The hero types through them. */
+  claims: [
+    'I build the part you never see.',
+    'I build the API the screen talks to.',
+    'I build the screen that explains it.',
+  ],
+  /** What the hero cycles through under the claim. The tail word never moves. */
+  roles: ['Backend', 'FullStack', 'AI', 'Frontend'],
+  roleTail: 'Engineering',
+  lead: 'APIs, distributed systems, data-intensive applications, and the React on top of them. Currently researching out-of-distribution detection.',
   siteUrl: 'https://portfolio.mifu278.workers.dev',
 } as const;
 

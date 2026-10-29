@@ -881,6 +881,60 @@ const heroStops = await cdp.evaluate(`(async () => {
 })()`, true);
 
 const separation = heroStops.mid.lift - heroStops.mid.backdropLift;
+// The hero's two moving lines: the claim types itself through three sentences
+// and holds each about ten seconds, and the role rotates in its own serif. The
+// box height is checked too, because a claim that changes size as it types would
+// make the rest of the hero breathe.
+const heroText = `(() => {
+  const claim = document.querySelector('.hero__claim');
+  const role = document.querySelector('.hero__role');
+  const typed = claim.querySelector('span[aria-hidden="true"]');
+  const spoken = claim.querySelector('.sr-only');
+  const slot = role.querySelector('.hero__role__slot');
+  const tail = role.querySelector('.hero__role__tail');
+  const cs = getComputedStyle(role);
+  return {
+    typed: typed ? typed.textContent : '',
+    spoken: spoken ? spoken.textContent : '',
+    glyphs: claim.querySelectorAll('.hero__gl').length,
+    caret: !!claim.querySelector('.hero__caret'),
+    height: Math.round(claim.getBoundingClientRect().height),
+    role: slot ? slot.textContent.trim() : '',
+    tailLeft: tail ? Math.round(tail.getBoundingClientRect().left) : -1,
+    font: cs.fontFamily,
+    fontStyle: cs.fontStyle,
+    colour: cs.color,
+  };
+})()`;
+const heroFirst = await cdp.evaluate(heroText);
+// The role turns every 3.4s, so a wait that is a whole number of turns would
+// sample the same word twice. Six seconds is not.
+await sleep(6000);
+const heroRole = await cdp.evaluate(heroText);
+// A claim line needs its type, hold, dissolve and fade: a little over eleven.
+await sleep(5500);
+const heroSecond = await cdp.evaluate(heroText);
+
+check(
+  'the hero claim types and moves on to the next line',
+  heroFirst.caret &&
+    heroFirst.glyphs > 10 &&
+    heroFirst.spoken.length > 10 &&
+    heroSecond.spoken !== heroFirst.spoken &&
+    heroSecond.height === heroFirst.height,
+  `${heroFirst.spoken.slice(0, 32)}... -> ${heroSecond.spoken.slice(0, 32)}..., box ${heroFirst.height}px both times`,
+);
+
+check(
+  'the hero role swaps one word and leaves the tail where it was',
+  heroFirst.font.includes('Instrument Serif') &&
+    heroFirst.fontStyle === 'italic' &&
+    heroFirst.colour === 'rgb(56, 189, 248)' &&
+    heroRole.role !== heroFirst.role &&
+    heroRole.tailLeft === heroFirst.tailLeft,
+  `${heroFirst.role} -> ${heroRole.role}, tail at ${heroFirst.tailLeft}px then ${heroRole.tailLeft}px, ${heroFirst.fontStyle} ${heroFirst.font.split(',')[0]}, ${heroFirst.colour}`,
+);
+
 check(
   'the hero recedes without dimming',
   heroStops.end.scale <= 0.94 && heroStops.end.lift <= -50 && heroStops.end.opacity === 1,

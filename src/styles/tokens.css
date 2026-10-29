@@ -30,6 +30,9 @@
 
   /* -- type ---------------------------------------------------------------- */
   --font-display: 'Archivo', system-ui, -apple-system, sans-serif;
+  /* A serif only the hero's role line uses, so it reads as a different voice
+     rather than as another weight of the same one. */
+  --font-role: 'Instrument Serif', Georgia, serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   --fs-display-xl: clamp(2.75rem, 9vw, 7.5rem);
   --fs-display-l: clamp(2rem, 5vw, 4rem);

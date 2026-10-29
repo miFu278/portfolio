@@ -2,6 +2,8 @@ import { PROFILE, chapter } from '../../../config/content';
 import { useClock } from '../../../hooks/useClock';
 import Reveal from '../../../components/ui/Reveal';
 import TopologyCanvas from '../../../components/layout/TopologyCanvas';
+import Typewriter from '../../../components/ui/Typewriter';
+import { useRotatingIndex } from '../../../hooks/useRotatingIndex';
 import portrait from '../../../assets/mp-chibi.jpg';
 import resumePdf from '../../../assets/ttmp_cv.pdf';
 
@@ -12,6 +14,7 @@ const RESPONSE = chapter('response');
 
 const Hero = () => {
   const clock = useClock(7);
+  const role = useRotatingIndex(PROFILE.roles.length, 3400);
 
   return (
     <section id={HERO.id} className="hero">
@@ -34,7 +37,20 @@ const Hero = () => {
               {PROFILE.name}
             </Reveal>
             <Reveal as="p" delay={80} className="hero__claim">
-              {PROFILE.claim}
+              <Typewriter lines={PROFILE.claims} />
+            </Reveal>
+            <Reveal as="p" delay={120} className="hero__role">
+              <span className="hero__role__slot" aria-hidden="true">
+                <span key={role} className="hero__role__in">
+                  {PROFILE.roles[role]}
+                </span>
+              </span>
+              <span className="hero__role__tail" aria-hidden="true">
+                {PROFILE.roleTail}
+              </span>
+              <span className="sr-only">
+                {PROFILE.roles[role]} {PROFILE.roleTail}
+              </span>
             </Reveal>
             <Reveal as="p" delay={160} className="lead hero__lead">
               {PROFILE.lead}
