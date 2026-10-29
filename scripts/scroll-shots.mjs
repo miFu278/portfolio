@@ -151,36 +151,10 @@ const shot = async (cdp, name) => {
  * anchors, clamped at both ends. Anchors are re-measured here so the comparison
  * uses the layout as it stands, not as it stood when the page first painted.
  */
-const READ_RAIL = `(() => {
-  const rail = document.querySelector('.rail');
-  const links = [...rail.querySelectorAll(':scope > a')];
-  const ids = links.map((a) => a.getAttribute('href').slice(1));
-  const mid = window.innerHeight * 0.5;
-  const anchors = ids.map((id) => {
-    const el = document.getElementById(id);
-    return el ? Math.max(0, el.getBoundingClientRect().top + window.scrollY - mid) : Number.POSITIVE_INFINITY;
-  });
-  return {
-    scrollY: Math.round(window.scrollY),
-    docHeight: document.documentElement.scrollHeight,
-    railY: Number.parseFloat(rail.style.getPropertyValue('--rail-y')),
-    marks: links.map((l) => l.offsetTop + l.offsetHeight / 2),
-    anchors,
-  };
-})()`;
-
-const expected = (marks, anchors, y) => {
-  const count = Math.min(marks.length, anchors.length);
-  if (y >= anchors[count - 1]) return marks[count - 1];
-  for (let i = 0; i < count - 1; i += 1) {
-    if (y < anchors[i]) break;
-    if (y < anchors[i + 1]) {
-      const span = anchors[i + 1] - anchors[i];
-      return marks[i] + (marks[i + 1] - marks[i]) * (span > 0 ? (y - anchors[i]) / span : 1);
-    }
-  }
-  return marks[0];
-};
+const READ_PAGE = `(() => ({
+  scrollY: Math.round(window.scrollY),
+  docHeight: document.documentElement.scrollHeight,
+}))()`;
 
 const results = [];
 const check = (name, ok, detail) => {
@@ -230,12 +204,21 @@ await cdp.evaluate(`(async () => {
 await sleep(170);
 await shot(cdp, 'h-title-reveal');
 
+// The seam caught mid-open, before the title has landed.
+await cdp.evaluate(`(async () => {
+  document.documentElement.style.scrollBehavior = 'auto';
+  const el = document.getElementById('gateway');
+  window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.82);
+})()`, true);
+await sleep(500);
+await shot(cdp, 'i-seam-open');
+
 // A reader scrolls down through the page, so every lazy raster loads. A jump to
 // the bottom skips them, which is why the shift this guards against only showed
 // up on a walk.
 const walk = await cdp.evaluate(`(async () => {
   document.documentElement.style.scrollBehavior = 'auto';
-  const read = () => ${READ_RAIL};
+  const read = () => ${READ_PAGE};
   const out = [];
   const step = 300;
   for (let y = 0; y <= document.documentElement.scrollHeight - window.innerHeight; y += step) {
@@ -254,25 +237,7 @@ const spread = Math.max(...heights) - Math.min(...heights);
 check(
   'the document keeps one height while a reader scrolls it',
   spread <= 1,
-  `scrollHeight ${Math.min(...heights)}..${Math.max(...heights)}`,
-);
-
-const last = walk[walk.length - 1];
-let worst = { delta: 0, y: 0 };
-for (const row of walk) {
-  const want = expected(row.marks, row.anchors, row.scrollY);
-  const delta = Math.abs(row.railY - want);
-  if (!Number.isFinite(row.railY) || delta > worst.delta) worst = { delta, y: row.scrollY };
-}
-check(
-  'the packet sits where the chapter anchors say it should',
-  worst.delta <= 0.6,
-  `worst ${worst.delta.toFixed(2)}px at scrollY ${worst.y}`,
-);
-check(
-  'the packet reaches the last marker and stays there',
-  Math.abs(last.railY - last.marks[last.marks.length - 1]) <= 0.6,
-  `--rail-y ${last.railY} vs mark ${last.marks[last.marks.length - 1]} at scrollY ${last.scrollY}`,
+  `scrollHeight ${Math.min(...heights)}..${Math.max(...heights)} over ${walk.length} positions`,
 );
 
 // The wheel has to be eased by Lenis, and the velocity layer has to shear with
@@ -454,7 +419,7 @@ const arrivals = await cdp.evaluate(`(async () => {
   document.documentElement.style.scrollBehavior = 'auto';
   const settle = async () => {
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-    await new Promise((r) => setTimeout(r, 1000));
+    await new Promise((r) => setTimeout(r, 1500));
   };
   const masks = [];
   const figures = [];
@@ -465,17 +430,24 @@ const arrivals = await cdp.evaluate(`(async () => {
     await settle();
     const lines = [...el.querySelectorAll('.line')];
     const words = [...el.querySelectorAll('.line__w')];
+    const glyphs = [...el.querySelectorAll('.line__c')].filter((c) => !c.classList.contains('type-caret'));
+    const caret = el.querySelector('.type-caret');
     masks.push({
       chapter: el.closest('section')?.id ?? '?',
+      split: el.dataset.split ?? 'none',
       lineCount: lines.length,
       words: words.length,
-      perWord: el.dataset.words === 'true',
+      glyphs: glyphs.length,
+      caret: caret ? getComputedStyle(caret).animationName : 'none',
+      caretAtEnd: caret ? !caret.nextElementSibling && !!caret.previousElementSibling : false,
+      label: el.getAttribute('aria-label') ?? 'none',
       clipped: lines.every((l) => getComputedStyle(l).overflow === 'hidden'),
       settled: [...el.querySelectorAll('.line__in')].every((i) => getComputedStyle(i).transform === 'none'),
       wordSettled: words.every((w) => {
         const cs = getComputedStyle(w);
         return cs.transform === 'none' && cs.opacity === '1';
       }),
+      glyphSettled: glyphs.every((g) => getComputedStyle(g).opacity === '1'),
     });
   }
 
@@ -495,7 +467,14 @@ const arrivals = await cdp.evaluate(`(async () => {
   return { masks, figures };
 })()`, true);
 
-const unopened = arrivals.masks.filter((m) => m.lineCount < 1 || m.words < 2 || !m.clipped || !m.settled);
+const unopened = arrivals.masks.filter(
+  (m) =>
+    m.lineCount < 1 ||
+    m.words + m.glyphs < 2 ||
+    !m.clipped ||
+    !m.settled ||
+    (m.split === 'type' ? !m.glyphSettled : !m.wordSettled),
+);
 check(
   'every chapter line arrives through its own mask',
   unopened.length === 0 && arrivals.masks.length >= 6,
@@ -504,14 +483,26 @@ check(
     : `${arrivals.masks.length} blocks, ${arrivals.masks.reduce((n, m) => n + m.lineCount, 0)} masked lines`,
 );
 
-const perWord = arrivals.masks.filter((m) => m.perWord);
-const unset = perWord.filter((m) => m.words < 3 || !m.wordSettled);
+const typed = arrivals.masks.filter((m) => m.split === 'type');
+const untyped = typed.filter(
+  (m) =>
+    m.glyphs < 3 ||
+    !m.glyphSettled ||
+    !m.caret.includes('caretRetire') ||
+    !m.caretAtEnd ||
+    m.label === 'none',
+);
 check(
-  'every chapter title is set word by word',
-  perWord.length >= 5 && unset.length === 0,
-  unset.length
-    ? unset.map((m) => `${m.chapter}: ${m.words} words, settled ${m.wordSettled}`).join(', ')
-    : `${perWord.length} titles, ${perWord.reduce((n, m) => n + m.words, 0)} words, all settled`,
+  'every chapter title types itself in, with a caret that follows and retires',
+  typed.length >= 5 && untyped.length === 0,
+  untyped.length
+    ? untyped
+        .map(
+          (m) =>
+            `${m.chapter}: ${m.glyphs} glyphs, settled ${m.glyphSettled}, caret ${m.caret}, at end ${m.caretAtEnd}, label ${m.label}`,
+        )
+        .join(', ')
+    : `${typed.length} titles, ${typed.reduce((n, m) => n + m.glyphs, 0)} glyphs, all settled and labelled`,
 );
 
 const unwiped = arrivals.figures.filter(
@@ -891,19 +882,40 @@ const heroStops = await cdp.evaluate(`(async () => {
 
 const separation = heroStops.mid.lift - heroStops.mid.backdropLift;
 check(
-  'the hero foreground recedes instead of fading out',
-  heroStops.end.scale <= 0.94 && heroStops.end.lift <= -50 && heroStops.end.opacity >= 0.3,
-  `scale ${heroStops.top.scale} -> ${heroStops.end.scale}, lift ${heroStops.end.lift}px, opacity ${heroStops.top.opacity} -> ${heroStops.end.opacity}`,
+  'the hero recedes without dimming',
+  heroStops.end.scale <= 0.94 && heroStops.end.lift <= -50 && heroStops.end.opacity === 1,
+  `scale ${heroStops.top.scale} -> ${heroStops.end.scale}, lift ${heroStops.end.lift}px, opacity ${heroStops.end.opacity}`,
 );
 check(
   'the hero backdrop moves against the foreground',
   separation <= -20 && heroStops.mid.backdropScale > 1,
   `foreground ${separation.toFixed(1)}px further up than the backdrop at mid, backdrop scale ${heroStops.top.backdropScale} -> ${heroStops.end.backdropScale}`,
 );
+
+// The seam: the gateway widens out of a vertical slit as it rises. Read as the
+// clip Chrome computes, at three points of its transit.
+const seam = await cdp.evaluate(`(async () => {
+  document.documentElement.style.scrollBehavior = 'auto';
+  const gateway = document.getElementById('gateway');
+  const top = gateway.getBoundingClientRect().top + window.scrollY;
+  const vh = window.innerHeight;
+  const out = {};
+  for (const [name, at] of [['entering', vh - 40], ['half', vh * 0.675], ['open', vh * 0.35 - 10]]) {
+    window.scrollTo(0, Math.round(top - at));
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    out[name] = getComputedStyle(gateway).clipPath;
+  }
+  return out;
+})()`, true);
+
+const sides = (clip) => (clip.match(/-?[\d.]+%?/g) ?? []).slice(1, 2).map((v) => Number.parseFloat(v));
+const entering = sides(seam.entering)[0] ?? 0;
+const half = sides(seam.half)[0] ?? 0;
+const open = sides(seam.open)[0] ?? 0;
 check(
-  'the hero dims as the first chapter arrives',
-  heroStops.end.opacity < heroStops.top.opacity - 0.2,
-  `opacity ${heroStops.top.opacity} -> ${heroStops.mid.opacity} -> ${heroStops.end.opacity}`,
+  'the gateway opens out of a seam as it rises',
+  entering > 35 && half > 10 && half < 38 && open < 1,
+  `side inset ${entering}% -> ${half}% -> ${open}%`, // ${seam.entering} / ${seam.open}
 );
 check(
   'the scroll cue leaves before the hero does',
@@ -990,7 +1002,7 @@ await load(cdp, 1500, 900);
 const calm = await cdp.evaluate(`(async () => {
   const shell = document.querySelector('#ingress .shell');
   const title = document.querySelector('#gateway .chapter-head__title');
-  const packet = document.querySelector('.rail__packet');
+  const gateway = document.getElementById('gateway');
   window.scrollTo(0, 380);
   await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
   await new Promise((r) => setTimeout(r, 400));
@@ -1000,7 +1012,7 @@ const calm = await cdp.evaluate(`(async () => {
     shellOpacity: shell ? getComputedStyle(shell).opacity : null,
     shellTransform: shell ? getComputedStyle(shell).transform : null,
     titleTransform: title ? getComputedStyle(title).transform : null,
-    packet: packet ? getComputedStyle(packet).display : 'missing',
+    seam: getComputedStyle(gateway).clipPath,
     skew: document.documentElement.style.getPropertyValue('--scroll-skew'),
   };
 })()`, true);
@@ -1012,9 +1024,9 @@ check(
     calm.shellTransform === 'none' &&
     calm.titleTransform === 'none' &&
     calm.shellOpacity === '1' &&
-    calm.packet === 'none' &&
+    (sides(calm.seam)[0] ?? 0) < 1 &&
     (calm.skew === '' || calm.skew === '0deg'),
-  `hero opacity ${calm.shellOpacity}, hero transform ${calm.shellTransform}, title transform ${calm.titleTransform}, packet ${calm.packet}, skew ${calm.skew || 'unset'}, scrolled to ${calm.y}`,
+  `hero opacity ${calm.shellOpacity}, hero transform ${calm.shellTransform}, title transform ${calm.titleTransform}, seam ${calm.seam}, skew ${calm.skew || 'unset'}, scrolled to ${calm.y}`,
 );
 
 await cdp.send('Emulation.setEmulatedMedia', { features: [] });

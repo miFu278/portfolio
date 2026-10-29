@@ -39,6 +39,7 @@ export const useScrollMotion = () => {
       gsap.registerPlugin(ScrollTrigger);
 
       const media = gsap.matchMedia();
+      const teardown: Array<() => void> = [];
       let startHero = () => {};
 
       const ctx = gsap.context(() => {
@@ -109,11 +110,12 @@ export const useScrollMotion = () => {
 
         // 4 · hero exit. Without this the opening frame is inert once its
         // entrance is over and the first chapter arrives as a cut. The
-        // foreground recedes: it shrinks, lifts faster than the backdrop and
-        // dims to a third, while the backdrop scales up and drifts with the
-        // scroll. Two layers leaving at different rates is what reads as a
-        // camera pulling back rather than a page fading out. The scroll cue is
-        // furniture and goes first.
+        // foreground recedes: it shrinks and lifts faster than the backdrop,
+        // while the backdrop scales up and drifts the other way. Two layers
+        // leaving at different rates is what reads as a camera pulling back.
+        // No dimming: the seam in effect 7 is what carries the hand-off, and a
+        // fade on top of it would read as the page dying rather than moving.
+        // The scroll cue is furniture and goes first.
         const hero = document.querySelector<HTMLElement>('#ingress');
         if (hero) {
           const depth = () => ({
@@ -128,7 +130,6 @@ export const useScrollMotion = () => {
             gsap.to(shell, {
               scale: 0.93,
               yPercent: -16,
-              opacity: 0.35,
               ease: 'none',
               scrollTrigger: depth(),
             });
@@ -187,6 +188,31 @@ export const useScrollMotion = () => {
             },
           );
         });
+
+        // 7 · the seam. The first chapter does not scroll away, it opens: the
+        // second widens out of a vertical slit at the centre as it rises. One
+        // clip-path on the whole chapter, driven by the section's own position,
+        // so the read is the same at any scroll speed. A clip reserves no space
+        // and moves no box, so the rail and every measurement under it are
+        // untouched.
+        const gateway = document.querySelector<HTMLElement>('#gateway');
+        if (gateway) {
+          const open = (progress: number) => {
+            gateway.style.setProperty('--seam', `${((1 - progress) * 50).toFixed(2)}%`);
+          };
+          const seam = ScrollTrigger.create({
+            trigger: gateway,
+            start: 'top bottom',
+            end: 'top 35%',
+            onUpdate: (self) => open(self.progress),
+            onRefresh: (self) => open(self.progress),
+          });
+
+          teardown.push(() => {
+            seam.kill();
+            gateway.style.removeProperty('--seam');
+          });
+        }
       });
 
       // 6 · services, held. The two projects are one path as much as the six
@@ -283,6 +309,7 @@ export const useScrollMotion = () => {
 
       revert = () => {
         window.removeEventListener('app:loaded', startHero);
+        teardown.forEach((off) => off());
         media.revert();
         ctx.revert();
       };

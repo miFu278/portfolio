@@ -226,15 +226,13 @@ space. The chapter title rises 13px inside the 16px grid gap above its lead, the
 Percentages of the element's own height do not hold that promise: a three line title at 14%
 overran the gap and landed on the lead.
 
-### Chapter rail packet
+### Chapter rail
 
-`useChapterProgress` writes `--rail-y` on the rail from a single rAF-throttled scroll listener,
-and `.rail__packet` consumes it as a transform, so no scroll frame touches layout. Position is
-piecewise-linear between chapter anchors, where a chapter's anchor is the scroll offset at which
-its top reaches the middle of the viewport, so the packet never reaches a chapter before that
-chapter's heading has. It remeasures on resize and through a `ResizeObserver` on `body`, because
-anything that changes the document height moves every anchor below it.
-Under reduced motion the hook returns early and the packet is not drawn.
+A fixed column of six markers stubs off one spine, so the six chapters read as one path rather than
+six links. The active marker widens and takes the signal colour; the label is a hover affordance, not
+furniture, because it would run into the headline below about 1700px. There is no travelling dot:
+it answered "how far along" on behalf of nobody, and cost a scroll listener and a remeasure on every
+height change to do it.
 
 ### Header chapter readout
 

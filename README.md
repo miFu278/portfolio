@@ -49,7 +49,7 @@ src/
 │   ├── anomaly/       components/Anomaly          (research)
 │   ├── observability/ components/Observability    (experience)
 │   └── response/      components/Response + hooks/useContactForm
-├── hooks/        useActiveSection · useChapterProgress · useClock · useLoadProgress
+├── hooks/        useActiveSection · useClock · useLoadProgress
 │                 useReducedMotion · useScrollMotion · useSmoothScroll
 ├── lib/          emailjs.ts (the only third-party transport boundary) · scrollVelocity.ts
 ├── pages/        Home.tsx — composes the chapters, owns no logic

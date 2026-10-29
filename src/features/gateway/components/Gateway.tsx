@@ -20,7 +20,7 @@ const ROUTES = [
 ];
 
 const Gateway = () => (
-  <section id={GATEWAY.id} className="chapter">
+  <section id={GATEWAY.id} className="chapter" data-seam>
     <div className="shell">
       <ChapterHead
         id={GATEWAY.id}
