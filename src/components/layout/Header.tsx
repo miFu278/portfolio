@@ -8,19 +8,36 @@ const IDS = CHAPTERS.map((c) => c.id);
 const Header = () => {
   const [open, setOpen] = useState(false);
   const [stuck, setStuck] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const active = useActiveSection(IDS);
   const current = chapter(active);
   const clock = useClock(7);
 
+  // The bar is part of the sky, so it has no surface to hide behind: instead it
+  // gets out of the way. It leaves on the way down, where the reader is going
+  // somewhere and the chapter rail and the readout already say where, and comes
+  // back on the way up, which is the gesture that means "take me back".
   useEffect(() => {
-    const onScroll = () => setStuck(window.scrollY > 80);
+    let last = window.scrollY;
+
+    const onScroll = () => {
+      const y = window.scrollY;
+      setStuck(y > 80);
+      setHidden(y > 120 && y > last);
+      last = y;
+    };
+
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // A keyboard reader tabbing into the menu must never land on a control that
+  // has been translated off the top of the screen.
+  const reveal = () => setHidden(false);
+
   return (
-    <header className="header" data-stuck={stuck}>
+    <header className="header" data-stuck={stuck} data-hidden={hidden} onFocus={reveal}>
       <div className="shell header__inner">
         <a className="header__brand" href={`#${IDS[0]}`} onClick={() => setOpen(false)}>
           {PROFILE.alias}

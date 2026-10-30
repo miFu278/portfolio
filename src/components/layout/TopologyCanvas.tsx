@@ -116,8 +116,11 @@ const TopologyCanvas = () => {
         }
       }
 
-      bake();
+      // The tokens first: `bake` paints the graph with them, so reading after it
+      // leaves the first sheet in the fallback colours — which is a white graph
+      // on paper, invisible.
       readAccent();
+      bake();
     };
 
     // The graph is static between resizes, so it is painted once into an
@@ -125,6 +128,8 @@ const TopologyCanvas = () => {
     // frame was the largest single frame cost on the page.
     let sheet: HTMLCanvasElement | null = null;
     let accent = '#38bdf8';
+    let edge = 'rgba(255,255,255,0.055)';
+    let node = 'rgba(255,255,255,0.32)';
 
     const bake = () => {
       const next = document.createElement('canvas');
@@ -134,7 +139,7 @@ const TopologyCanvas = () => {
       if (!paint) return;
       paint.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      paint.strokeStyle = 'rgba(255,255,255,0.055)';
+      paint.strokeStyle = edge;
       paint.lineWidth = 1;
       paint.beginPath();
       edges.forEach(({ a, b }) => {
@@ -146,7 +151,7 @@ const TopologyCanvas = () => {
       nodes.forEach((n) => {
         paint.beginPath();
         paint.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-        paint.fillStyle = 'rgba(255,255,255,0.32)';
+        paint.fillStyle = node;
         paint.fill();
       });
 
@@ -154,9 +159,12 @@ const TopologyCanvas = () => {
     };
 
     // Read once per build: getComputedStyle on every frame is a forced style
-    // recalculation, and the token never changes while the page is live.
+    // recalculation, and the tokens never change while the page is live.
     const readAccent = () => {
-      accent = getComputedStyle(canvas).getPropertyValue('--signal').trim() || '#38bdf8';
+      const style = getComputedStyle(canvas);
+      accent = style.getPropertyValue('--signal').trim() || '#38bdf8';
+      edge = style.getPropertyValue('--net-edge').trim() || edge;
+      node = style.getPropertyValue('--net-node').trim() || node;
     };
 
     const drawBase = () => {

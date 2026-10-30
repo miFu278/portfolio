@@ -1,5 +1,5 @@
 /* ============================================================================
-   TOKENS — one skin.
+   TOKENS -- one skin.
    Merged from the three lab variants: the REGISTRY console palette and type
    discipline, with the ONE REQUEST layout for the services chapter.
 
@@ -9,6 +9,11 @@
    ========================================================================= */
 
 :root {
+  /* One skin, dark. `color-scheme` is not decoration: it is what gives the
+     scrollbars and the contact form's controls the page's own darkness instead of
+     the platform's default light. */
+  color-scheme: dark;
+
   /* -- geometry ------------------------------------------------------------ */
   --w-content: 1240px;
   --gutter: clamp(1.25rem, 4vw, 4rem);
@@ -55,6 +60,34 @@
   --text-dim: #5d6b6f;
   --signal: #38bdf8;
   --signal-soft: rgba(56, 189, 248, 0.14);
+
+  /* The hero's topology, drawn into a canvas: the two values the paint needs.
+     Canvas has no cascade, so they are tokens it reads like any other. */
+  --net-edge: rgba(232, 237, 238, 0.055);
+  --net-node: rgba(232, 237, 238, 0.32);
+
+  /* The plate the exported diagrams carry inside them. It does not follow the
+     theme, because it is painted into the raster: the figure is a screen in
+     both skins, and recolouring its frame to match one of them would be a lie
+     about what is inside it. */
+  --plate: #121212;
+  --shadow-sheet: 0 -28px 72px rgb(0 0 0 / 0.45);
+
+  /* The sky behind the page. RGB triplets, because the canvas composes its own
+     alphas from them and has no cascade to inherit a colour through. `gain` is
+     how strongly the field reads on this ground, and `veil` is the cloud it sits
+     in -- a background on its own element, painted by the compositor, because
+     baking the same gradient into the canvas cost a full-viewport blit every
+     frame. */
+  --star: 255, 255, 255;
+  --star-cool: 200, 225, 255;
+  --star-warm: 255, 245, 230;
+  --star-gain: 1;
+    --star-veil:
+    radial-gradient(58% 54% at 18% 22%, rgba(48, 38, 104, 0.34), transparent 70%),
+    radial-gradient(64% 58% at 82% 72%, rgba(22, 44, 82, 0.38), transparent 72%),
+    radial-gradient(44% 44% at 55% 10%, rgba(34, 56, 98, 0.26), transparent 65%),
+    radial-gradient(50% 50% at 40% 85%, rgba(30, 26, 74, 0.28), transparent 68%);
 
   /* -- surfaces ------------------------------------------------------------ */
   --surface: var(--bg-raised);
@@ -141,6 +174,26 @@ ul {
 :focus-visible {
   outline: 2px solid var(--signal);
   outline-offset: 3px;
+}
+
+/* ================================================================ starfield
+   The sky. Behind every frame, under every page, and never in the way: neither
+   layer takes pointer events, so this is atmosphere rather than surface.
+
+   The cloud is a separate element from the stars for a measured reason: as the
+   canvas's own background it was re-rastered on every invalidated frame, which
+   took the scroll from 60fps to 30 on its own. Static box, painted once. */
+
+.starfield,
+.starfield__veil {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.starfield__veil {
+  background: var(--star-veil);
 }
 
 /* Keyboard reachability: without this, tabbing walks the six chapter links before
@@ -249,7 +302,7 @@ ul {
 }
 
 /* An accent hairline that draws itself as the chapter enters. Scroll-linked with
-   CSS only — no GSAP, no ScrollTrigger, no scroll listener. Browsers without
+   CSS only -- no GSAP, no ScrollTrigger, no scroll listener. Browsers without
    animation-timeline never paint it, so nothing degrades. */
 .chapter::before {
   content: '';

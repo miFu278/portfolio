@@ -27,6 +27,7 @@ pnpm preview     # serve the build
 pnpm lint        # eslint
 pnpm deploy      # wrangler deploy
 pnpm icons       # regenerate the favicon set from src/assets/mp-chibi.jpg
+pnpm images      # regenerate the AVIF/WebP rungs of the diagrams from their exports
 pnpm shots       # full-page screenshots via Chrome DevTools Protocol → screenshots/
 pnpm scroll      # scroll-pass checks + screenshots → screenshots/scroll/
 pnpm budget      # frame budget and glide tail while scrolling

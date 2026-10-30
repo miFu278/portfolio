@@ -47,7 +47,7 @@ export const PROFILE = {
   roles: ['AI', 'FullStack', 'Frontend', 'Backend'],
   roleTail: 'Engineering',
   lead: 'APIs, distributed systems, data-intensive applications, and the React on top of them. Currently researching out-of-distribution detection.',
-  siteUrl: 'https://portfolio.mifu278.workers.dev',
+  siteUrl: 'https://portfolio.mpdev.tech',
 } as const;
 
 /* ----------------------------------------------------------------- chapters */
@@ -137,9 +137,9 @@ export const PROJECTS: Project[] = [
     title: 'This Portfolio',
     year: '2026',
     meta: 'solo · React · GSAP · Cloudflare Workers',
-    body: 'The argument this page makes is that a backend engineer can hold a frame of motion. Scroll is lerped rather than stepped, every scrubbed position is read from the same geometry that moves it, and a headless harness asserts thirty-nine invariants over the built page after every change. The hero says it in the first screen.',
+    body: 'The argument this page makes is that a backend engineer can hold a frame of motion. Scroll is lerped rather than stepped, every scrubbed position is read from the same geometry that moves it, and a headless harness asserts forty-six invariants over the built page after every change. The hero says it in the first screen.',
     stats: [
-      { value: '39', label: 'invariants' },
+      { value: '46', label: 'invariants' },
       { value: '6', label: 'chapters' },
       { value: 'headless', label: 'verified' },
     ],

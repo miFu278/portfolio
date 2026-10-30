@@ -3,6 +3,7 @@ import ChapterRail from '../components/layout/ChapterRail';
 import ScrollProgress from '../components/layout/ScrollProgress';
 import Footer from '../components/layout/Footer';
 import Loader from '../components/layout/Loader';
+import StarField from '../components/layout/StarField';
 import Cursor from '../components/ui/Cursor';
 import Hero from '../features/hero/components/Hero';
 import Gateway from '../features/gateway/components/Gateway';
@@ -29,6 +30,8 @@ const Home = () => {
       <a className="skip-link" href="#ingress">
         Skip to content
       </a>
+      {/* First in the document and behind everything: the sky the frames sit in. */}
+      <StarField />
       <Loader progress={progress} done={done} />
       <Cursor />
       <ScrollProgress />

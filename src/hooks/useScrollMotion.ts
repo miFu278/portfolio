@@ -3,9 +3,33 @@ import { useEffect } from 'react';
 const REDUCED = '(prefers-reduced-motion: reduce)';
 
 /**
+ * The chapters that arrive over the one before them, and how far each is tilted
+ * as it starts. Positive turns clockwise, so the sheet's left corner is held up
+ * and the reveal runs left to right; negative leads with the right corner. The
+ * two seams alternate, so the page never hands over twice the same way.
+ */
+const SHEETS: ReadonlyArray<{ id: string; tilt: number; held: string }> = [
+  { id: 'services', tilt: 2.8, held: '#gateway' },
+  { id: 'anomaly', tilt: -2.8, held: '#services' },
+];
+
+/**
+ * Document offset from layout alone. The sheet this drives is the element being
+ * tilted, so anything that reads its rect reads its own output back; `offsetTop`
+ * is the box the layout gave it, which the transform cannot move.
+ */
+const layoutTop = (el: HTMLElement) => {
+  let y = 0;
+  for (let node: HTMLElement | null = el; node; node = node.offsetParent as HTMLElement | null) {
+    y += node.offsetTop;
+  }
+  return y;
+};
+
+/**
  * Scroll motion that needs pin/scrub timing, which CSS animation-timeline cannot do.
  *
- * Five effects, all of them scrubbed or staggered by ScrollTrigger:
+ * Eight effects, all of them scrubbed or staggered by ScrollTrigger:
  *   1. hero — the name rises word by word
  *   2. chapter titles — rise a fixed 13px inside the heading's own grid gap,
  *      eased in step with scroll position, not a fixed duration
@@ -13,6 +37,8 @@ const REDUCED = '(prefers-reduced-motion: reduce)';
  *   4. hero exit — the opening frame recedes as the first chapter arrives
  *   5. depth — kickers and figures travel faster than the copy between them
  *   6. services — the stage is pinned and its two projects are carried sideways
+ *   7. the seam — the first chapter opens out of a slit
+ *   8. the handover — chapter 02 holds while chapter 03 rises over it as a sheet
  *
  * Nothing here moves body copy. The reading plane keeps its place under the
  * eye, and only things at a distance from it drift, which is what makes the
@@ -217,6 +243,81 @@ export const useScrollMotion = () => {
             gateway.style.removeProperty('--seam');
           });
         }
+
+        // 8 · the handover. A chapter does not scroll in after the one before it:
+        // that one holds at the top of the viewport while this one rises over it
+        // as an opaque sheet, tilted and straightening as it takes the screen.
+        // The hold is a sticky stage inside a wrapper the layout gives extra
+        // height (.gateway__hold, .services__pin), so this effect owns only the
+        // tilt — the geometry that has to stay in time is the sheet's own place
+        // in the document.
+        const sheets = SHEETS.flatMap(({ id, tilt, held }) => {
+          const el = document.getElementById(id);
+          const covered = document.querySelector<HTMLElement>(held);
+          return el?.classList.contains('chapter--sheet') ? [{ el, tilt, covered }] : [];
+        });
+
+        if (sheets.length > 0) {
+          const paint = () => {
+            const rise = window.innerHeight;
+            for (const sheet of sheets) {
+              // Read from layout, never from the sheet's own rect: the rect is
+              // the thing being tilted. 0 while the top edge is still at the
+              // bottom of the viewport, 1 once it has reached the top — the same
+              // one screen of travel that the hold gives the chapter underneath.
+              const progress = (rise - (layoutTop(sheet.el) - window.scrollY)) / rise;
+              const eased = Math.min(1, Math.max(0, progress));
+              sheet.el.style.setProperty(
+                '--sheet-tilt',
+                `${((1 - eased) * sheet.tilt).toFixed(2)}deg`,
+              );
+              // Flat and out of the compositor once it has landed: the pinned
+              // beat inside one of these is what needs the frames.
+              if (eased >= 1) sheet.el.dataset.flat = 'true';
+              else delete sheet.el.dataset.flat;
+              // The cover retires the moment the sheet has landed: it only ever
+              // existed to hide the chapter underneath, and that chapter is gone
+              // by then, faded out where nobody can see it happen. Past this
+              // point the sky runs behind the page.
+              const past = Math.max(0, progress - 1) / 0.15;
+              sheet.el.style.setProperty('--sheet-plate', Math.max(0, 1 - past).toFixed(3));
+
+              // The chapter being covered is gone by the time the sheet lands, so
+              // that the cover can retire there and let the sky through. The fade
+              // is squeezed into the last sliver of the rise -- the strip of the
+              // old page still on screen above the sheet's edge -- because the
+              // hand-over should look like pages stacking, not like a dissolve.
+              const leave = Math.min(1, Math.max(0, (eased - 0.85) / 0.15));
+              sheet.covered?.style.setProperty('--stage-fade', (1 - leave).toFixed(3));
+            }
+          };
+
+          // A refresh measures rects this effect is about to move. The tilt costs
+          // a sheet's top edge up to a corner of travel, which would land in
+          // every trigger measured below it, so the measurement gets the untilted
+          // boxes and the property is handed straight back afterwards.
+          const release = () =>
+            sheets.forEach((sheet) => sheet.el.style.setProperty('--sheet-tilt', '0deg'));
+          ScrollTrigger.addEventListener('refreshInit', release);
+          ScrollTrigger.addEventListener('refresh', paint);
+
+          // One trigger over the whole page: a scroll callback that measures
+          // nothing, so it cannot chase its own output either.
+          const driver = ScrollTrigger.create({ start: 0, end: 'max', onUpdate: paint });
+
+          paint();
+          teardown.push(() => {
+            driver.kill();
+            ScrollTrigger.removeEventListener('refreshInit', release);
+            ScrollTrigger.removeEventListener('refresh', paint);
+            for (const sheet of sheets) {
+              sheet.el.style.removeProperty('--sheet-tilt');
+              sheet.el.style.removeProperty('--sheet-plate');
+              sheet.covered?.style.removeProperty('--stage-fade');
+              delete sheet.el.dataset.flat;
+            }
+          });
+        }
       });
 
       // 6 · services, held. The two projects are one path as much as the six
@@ -239,18 +340,22 @@ export const useScrollMotion = () => {
         if (!stage || !hold || !track) return;
 
         const spread = () => Math.max(0, (track.children.length - 1) * stage.clientWidth);
-        // Three numbers, in scroll order: a hold on the first project so it can be
-        // read before it moves, the travel itself, and the dwell that releases
-        // the chapter.
+        // Four numbers, in scroll order: a hold on the first project so it can be
+        // read before it moves, the travel itself, the dwell that releases the
+        // chapter, and then one screen of hold in which chapter 04 rises over
+        // the stage (the handover, effect 8). The last one is room for the stage
+        // to be under a sheet, not part of the beat, so it never enters the
+        // progress below.
         const lead = () => Math.round(window.innerHeight * 0.4);
         const dwell = () => Math.round(window.innerHeight * 0.5);
+        const handover = () => Math.round(window.innerHeight);
         const held = () => lead() + spread() + dwell();
 
-        // The wrapper is one viewport plus all three, and it is resized before
+        // The wrapper is one viewport plus all four, and it is resized before
         // every refresh rather than after, so nothing ever measures a layout that
         // is about to change.
         const room = () => {
-          hold.style.height = `calc(100svh + ${held()}px)`;
+          hold.style.height = `calc(100svh + ${held() + handover()}px)`;
         };
         room();
         ScrollTrigger.addEventListener('refreshInit', room);
@@ -269,7 +374,7 @@ export const useScrollMotion = () => {
           stage.style.transform = `translate3d(0, ${(-6 * leave).toFixed(2)}%, 0) scale(${(
             1 - 0.04 * leave
           ).toFixed(3)})`;
-          stage.style.opacity = `${(1 - 0.45 * leave).toFixed(3)}`;
+          stage.style.setProperty('--stage-dim', (1 - 0.45 * leave).toFixed(3));
         };
 
         const apply = () => {
@@ -299,7 +404,7 @@ export const useScrollMotion = () => {
           hold.style.removeProperty('height');
           track.style.removeProperty('--services-x');
           stage.style.removeProperty('transform');
-          stage.style.removeProperty('opacity');
+          stage.style.removeProperty('--stage-dim');
         };
       });
 

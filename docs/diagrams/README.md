@@ -29,12 +29,18 @@ public/diagrams/ecommerce.png   ←  from ecommerce-full.excalidraw
 public/diagrams/rag.png         ←  from the RAG scene
 ```
 
-6. `pnpm build` — nothing to edit in code beyond the pixel size. The mapping lives in one
+6. `pnpm images` — the export is the master, the site ships derived rungs. The script writes
+   `<name>-<half>.{avif,webp}` and `<name>-<full>.{avif,webp}` next to the export, which is what
+   the `<picture>` in `Services.tsx` offers the browser; it skips anything already newer than its
+   source, and `pnpm images --force` rewrites the lot. (This one runs on `sharp`, a devDependency,
+   not on the Pillow install the icon script would like.)
+
+7. `pnpm build` — nothing to edit in code beyond the pixel size. The mapping lives in one
 place:
 
 ```ts
 // src/features/services/components/Services.tsx
-const DIAGRAMS: Record<DiagramKey, { src: string; width: number; height: number }> = {
+const DIAGRAMS: Record<DiagramKey, Diagram> = {
   ecommerce: { src: '/diagrams/ecommerce.png', width: 1460, height: 804 },
   rag: { src: '/diagrams/rag.png', width: 1687, height: 921 },
 };

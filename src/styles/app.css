@@ -137,14 +137,41 @@
   inset-inline: 0;
   top: 0;
   z-index: 40;
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
-  backdrop-filter: blur(12px);
+  /* Open, in every section and at every scroll position: the bar is part of the
+     page's sky, not a surface laid on top of it. A translucent `--bg` with a blur
+     read as a black strip that cut the star field off at the fold, which is
+     exactly what it was doing. */
+  background: transparent;
   border-bottom: 1px solid transparent;
-  transition: border-color var(--d-ui) var(--ease-out);
+  transition:
+    border-color var(--d-ui) var(--ease-out),
+    transform var(--d-ui) var(--ease-out);
+}
+
+/* Out of the way on the way down. It is furniture over a page that is otherwise
+   edge to edge, so it earns its place by leaving: the sky, the chapter rail and
+   the readout already say where the reader is. */
+.header[data-hidden='true'] {
+  transform: translateY(-100%);
+}
+
+.header:focus-within {
+  transform: none;
 }
 
 .header[data-stuck='true'] {
+  /* The one thing a transparent fixed bar still owes the reader is an edge, so the
+     top of the page is bounded while content is passing under it. */
   border-bottom-color: var(--line);
+}
+
+/* Text that can end up over a headline needs its own edge. A shadow costs nothing
+   and does not cut the sky the way a surface would. */
+.header__brand,
+.header__nav a,
+.header__meta,
+.header__now {
+  text-shadow: 0 1px 6px var(--bg), 0 0 2px var(--bg);
 }
 
 .header__inner {
@@ -1041,6 +1068,142 @@
   }
 }
 
+/* ================================================================= handover
+   Two seams, and one effect: a chapter does not scroll in after the one before
+   it, that one holds at the top of the viewport for a screen while this one
+   rises over it as an opaque sheet, tilted and straightening as it takes the
+   screen — the hand-over Kigo uses between its service pages. 02 into 03 leads
+   from the left corner, 03 into 04 from the right.
+
+   The hold is the same shape as the services beat, and chosen for the same
+   reason: a sticky stage inside a wrapper that is one screen taller than the
+   stage needs. Where that extra height comes from is the only per-seam
+   difference — a tail on the gateway, the pinned wrapper's own height on the
+   services — and the arriving chapter is pulled up by exactly that much, so its
+   top edge starts rising over the chapter it covers and not a screen away from
+   it. The two values cancel, so the document keeps the length it had.
+   ========================================================================= */
+
+.gateway__hold {
+  position: relative;
+}
+
+.chapter--sheet {
+  /* Above the chapter it covers, and under the header (z-index 30+), which stays
+     readable. */
+  z-index: 1;
+  background: transparent;
+  /* Rotated about its own centre rather than a corner: that is what pulls the
+     corners in from the viewport edges and makes the box read as a sheet rather
+     than as a page that is merely moving. Which corner leads is the sign of
+     --sheet-tilt, and it alternates seam to seam. */
+  transform-origin: center;
+  transform: rotate(var(--sheet-tilt, 0deg));
+  box-shadow: var(--shadow-sheet);
+}
+
+/* The chapter a sheet covers steps back as the sheet takes the screen: it is
+   behind the cover for all of it, so the fade is invisible, and it is what lets
+   the cover retire at landing instead of hiding the sky for five screens. The
+   whole chapter, not its stage -- the registry panel sits beside the stage and
+   was showing through on its own. */
+#gateway,
+#services {
+  opacity: var(--stage-fade, 1);
+}
+
+/* One stage is dimmed twice, by two owners: the services beat during its dwell
+   and the handover while it is covered. Each writes its own property. */
+.services__stage {
+  opacity: var(--stage-dim, 1);
+}
+
+/* The cover. A sheet is pulled up over the chapter before it, so its first
+   screens have that chapter's own pinned stage behind them -- a page cannot be
+   transparent over another page. This plate hides it, and retires once the sheet
+   lands, which is what lets the sky run behind the two chapters that arrive as
+   sheets. `useScrollMotion` writes its opacity; `::after` because
+   `.chapter::before` is the accent hairline that draws the top edge.
+
+   It carries the sky's own material, not just the ground colour: the same ground,
+   the same cloud, and a still field of stars. Without them the thing rises as a
+   flat black card against a lit sky and the seam reads as two unrelated surfaces
+   -- the stars under it cannot be the live ones, which are behind the page, so
+   they are painted here and cross-fade to the live field as the plate retires. */
+.chapter--sheet::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(1px 1px at 42px 68px, rgb(255 255 255 / 0.5), transparent 100%),
+    radial-gradient(1px 1px at 88px 22px, rgb(255 255 255 / 0.3), transparent 100%),
+    radial-gradient(1.3px 1.3px at 30px 96px, rgb(255 255 255 / 0.38), transparent 100%),
+    radial-gradient(1px 1px at 66px 44px, rgb(200 225 255 / 0.4), transparent 100%),
+    var(--star-veil);
+  /* Eight layers, eight values: a short list repeats, and a repeated size turns
+     the cloud into a patchwork of tiles. */
+  background-size: 110px 90px, 140px 120px, 170px 150px, 130px 160px, auto, auto, auto, auto;
+  background-repeat: repeat, repeat, repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Flat, and out of the compositor: by the time the sheet has taken the screen it
+   is a several-screens-tall box that is done moving, and the pinned beat inside
+   it is the part that needs the frames. */
+.chapter--sheet[data-flat='true'] {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Reduced motion keeps the page it already had: no hold, no overlap, no tilt.
+   The handover is a pause in the scroll, and a pause with nothing moving in it
+   is exactly what that preference is asking not to be given. */
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  /* Only where there is a handover is there anything to cover. */
+  .chapter--sheet::after {
+    opacity: var(--sheet-plate, 1);
+  }
+
+  /* The hold, and it has to be height, not padding: a sticky box is given no
+     travel room by its parent's padding in Chrome (measured here — the stage
+     simply scrolled past).
+
+     One screen of travel is the length of the sheet's rise, plus the two chapter
+     pads that sit between this chapter's content and the next chapter's top
+     edge, so the hold outlasts the rise rather than ending just short of it. */
+  .gateway__hold::after {
+    content: '';
+    display: block;
+    height: calc(100svh + 2 * var(--chapter-pad));
+  }
+
+  /* The tail is where the sheet rises, not something it waits behind: pulled up
+     by exactly the hold, the next chapter's top edge sits at this chapter's
+     content edge and rises over the tail while the stage inside it is pinned.
+     The two values cancel in the document height, so the page is no longer than
+     the hold is. */
+  #services.chapter--sheet {
+    margin-top: calc(-100svh - 2 * var(--chapter-pad));
+  }
+
+  /* Chapter 04 rises over the services stage, whose hold is one screen plus the
+     chapter's own bottom padding — no tail, no second pad: the room it rises in
+     is inside the pinned wrapper the hook sizes. */
+  #anomaly.chapter--sheet {
+    margin-top: calc(-100svh - var(--chapter-pad));
+  }
+
+  .gateway__stage {
+    position: sticky;
+    /* Where the chapter's own padding had left the content, so nothing jumps at
+       the moment it stops scrolling. */
+    top: var(--chapter-pad);
+  }
+}
+
 /* ================================================================== services */
 
 .services__split {
@@ -1186,7 +1349,7 @@ html[data-cursor='on'] .cursor {
   border: var(--surface-border);
   border-radius: var(--radius);
   /* the exports carry their own #121212 plate */
-  background: #121212;
+  background: var(--plate);
   padding: 0;
   overflow: hidden;
 }
@@ -1195,6 +1358,14 @@ html[data-cursor='on'] .cursor {
   display: block;
   width: 100%;
   height: auto;
+}
+
+/* A <picture> is a format switch, not a box. `display: contents` keeps the raster
+   where it was as a direct child: the flex item that fills the pinned stage, and
+   the centred grid item in the viewer. */
+.project__diagram picture,
+.lightbox__stage picture {
+  display: contents;
 }
 
 /* ============================================== figure + full-screen viewer =
@@ -1692,6 +1863,30 @@ html[data-cursor='on'] .cursor {
 @media (min-width: 960px) {
   .anomaly__grid {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  }
+
+  /* Chapter 04 is a panel: one screen, the same shape as the sheet that carries
+     it in, so the handover lands on a page rather than on a fragment. The copy
+     and the plot share the screen instead of running past it. The plot is the
+     part that gives way — a square figure, so its height is the chapter's — and
+     the pads come down because a panel is measured in screens. */
+  #anomaly {
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    padding-block: clamp(2.5rem, 6vh, 5rem);
+  }
+
+  #anomaly .chapter-head {
+    margin-bottom: clamp(1rem, 2vh, 1.75rem);
+  }
+
+  #anomaly .anomaly__plot svg {
+    display: block;
+    margin-inline: auto;
+    width: auto;
+    height: clamp(14rem, 34svh, 28rem);
+    max-width: 100%;
   }
 }
 
