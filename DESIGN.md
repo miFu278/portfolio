@@ -7,9 +7,9 @@ intention.
 
 Personal portfolio for a backend engineer. Goals in priority order:
 
-1. Establish identity — name, role, one claim.
-2. Prove depth — two running systems, one internship, one paper.
-3. Convert — résumé, GitHub, contact.
+1. Establish identity â€” name, role, one claim.
+2. Prove depth â€” two running systems, one internship, one paper.
+3. Convert â€” rÃ©sumÃ©, GitHub, contact.
 
 Audience: recruiters and hiring engineers screening for backend / distributed-systems work.
 
@@ -19,13 +19,13 @@ The page is not a list of sections. It is a request travelling through a system,
 chapter is a hop:
 
 ```
-01 INGRESS → 02 GATEWAY → 03 SERVICES → 04 ANOMALY → 05 OBSERVABILITY → 06 RESPONSE
+01 INGRESS â†’ 02 GATEWAY â†’ 03 SERVICES â†’ 04 ANOMALY â†’ 05 OBSERVABILITY â†’ 06 RESPONSE
 ```
 
 Chapter ids, the `ChapterRail`, the header nav and `config/content.ts` all read from one
 list (`CHAPTERS`), so the metaphor cannot drift between them.
 
-Each chapter title is a sentence with a verb — *"Nothing gets through by accident."*,
+Each chapter title is a sentence with a verb â€” *"Nothing gets through by accident."*,
 *"Some inputs don't belong here."* Nouns like "About" or "Skills" were deliberately dropped.
 
 ## 3. Architecture
@@ -34,8 +34,8 @@ Feature-sliced. `config/content.ts` is the content source of truth; `pages/Home.
 routing shell that composes features and owns no logic; each feature exposes one barrel.
 
 ```
-content.ts ──→ features/*/components ──→ pages/Home.tsx
-                    ↑
+content.ts â”€â”€â†’ features/*/components â”€â”€â†’ pages/Home.tsx
+                    â†‘
         components/ui, components/layout, hooks, lib
 ```
 
@@ -49,7 +49,7 @@ Rules that keep it honest:
 
 ## 4. Visual language
 
-One skin, dark: a systems console. No light mode.
+One skin, dark: a systems console.
 
 ### Colour
 
@@ -57,35 +57,87 @@ One skin, dark: a systems console. No light mode.
 |---|---|---|
 | `--bg` | `#0b0d0e` | page |
 | `--bg-raised` | `#14181a` | cards, panels |
-| `--bg-sunk` | `#050708` | figure plates, wells |
+| `--bg-sunk` | `#050708` | wells, the viewer's backdrop |
 | `--line` | `#212a2d` | hairlines |
 | `--line-hot` | `rgba(232,237,238,.26)` | hover borders |
 | `--text-primary` | `#e8edee` | headings, node names |
 | `--text-body` | `#9fb0b4` | paragraphs |
 | `--text-dim` | `#5d6b6f` | labels only |
 | `--signal` | `#38bdf8` | the request |
+| `--plate` | `#121212` | the diagrams' own plate |
 
 **Accent discipline.** `--signal` belongs to the request. It appears on the active chapter
 marker, the availability dot, the technologies the visible project actually uses, one number
 per section, and the event arrow in the e-commerce figure. Nowhere else. Budget: about 2% of
 pixels.
 
-It is a cool signal on a cool page, which is the current skin: the page ground is already
-blue-leaning, so the accent carries by chroma and brightness rather than by temperature. On
-`--bg` it clears 9.1:1, and `--bg` on it clears the same, which is what the solid button's
-hover depends on.
+It is a cool signal on a cool page: the page ground is already blue-leaning, so the accent
+carries by chroma and brightness rather than by temperature. On `--bg` it clears 9.1:1, and
+`--bg` on it clears the same, which is what the solid button's hover depends on.
 
 `--text-dim` is 11px labels only. It does not clear 4.5:1 against `--bg-raised`, so it must
 never carry a sentence.
+
+**Figures carry their own plate.** `--plate` is `#121212` because that colour is painted into
+every exported raster: the frame matches the raster instead of boxing it, and the figure reads
+as a screen rather than as a hole in the card.
+
+The hero's topology is drawn into a canvas, which has no cascade, so the two values it needs
+(`--net-edge`, `--net-node`) are tokens it reads like any other.
+
+### The sky
+
+Behind every frame and under every page there is a star field: a fixed layer at `z-index: 0` that
+takes no pointer events, so it is atmosphere and never surface. It is a sphere around the camera,
+not a texture -- every star is a direction at a fixed radius, projected each frame -- which is what
+lets one field answer the pointer (a shallow orbit), the scroll (a warp that decays), and the
+cursor itself: stars near it bend toward it and the nearest few are joined to it, as if the pointer
+were a well in the field.
+
+It is two elements. The cloud is a static `div` whose gradients are the `--star-veil` tokens; the
+stars are a canvas above it. That split is not tidiness: painted as the canvas's own background,
+the gradient was re-rastered every time the canvas was invalidated, which is every frame.
+
+What keeps it off the frame budget, in the order each one buys: the count comes from the viewport
+area (`DENSITY`) instead of being fixed; pinpoints are `fillRect` calls and only the few anchors
+pay for a path, an arc and an aura; the backing store is 1:1 with CSS pixels, because a scaled
+canvas is resampled every frame; and the loop runs at 30fps. It pauses with the tab.
+
+Under `prefers-reduced-motion` it paints one frame and never starts a loop -- the sky is there, the
+movement is not.
+
+A sheet is pulled up over the chapter before it, so its first screens have that chapter behind
+them, and a page cannot be transparent over another page. The cover that hides it is a `::after`
+plate on the sheet itself, and it retires the moment the sheet lands -- by then the chapter
+underneath has faded out where nobody could see it happen. So the sky is behind every frame on the
+page, including the two that arrive as sheets, and hidden only for the length of a hand-over.
+
+The plate is not a flat `--bg`: it carries the same sky it is standing in front of -- the ground,
+the `--star-veil` cloud, and its own field of stars. Without them the sheet rose as a black card
+against a lit sky and the seam read as two unrelated surfaces. The stars on it are painted, not
+projected, because the live field is behind the page and cannot show through a page; they
+cross-fade to the live ones as the plate retires. Eight background layers, so eight
+`background-size` values: a short list repeats, and a repeated size tiles the cloud into a
+patchwork.
+
+The header is open in every section and at every scroll position, for the same reason: a bar of
+`--bg` there cut the field off at the fold, and a blur on it smeared the stars into a band that read
+as black. It has no surface to hide behind, so it gets out of the way instead -- it leaves on the
+way down, where the chapter rail and the readout already say where the reader is, and comes back on
+the way up, which is the gesture that means "take me back", and on focus, so a keyboard reader can
+never land on a control that has been translated off the screen. What it does carry is a hairline
+once the page is scrolled, and a text shadow on its own type, because that type can end up over a
+headline.
+
 
 ### Type
 
 Three families, all loaded in `index.html`:
 
-- **Archivo** 400–700 — display and body.
-- **JetBrains Mono** 400/500 — technical content only: labels, meta, timestamps, node names,
+- **Archivo** 400â€“700 â€” display and body.
+- **JetBrains Mono** 400/500 â€” technical content only: labels, meta, timestamps, node names,
   arrow labels. Never used as a blanket "dev" font for prose.
-- **Instrument Serif** italic — one line on the page, the hero's role. It is a voice, not a
+- **Instrument Serif** italic â€” one line on the page, the hero's role. It is a voice, not a
   scale step, which is why a third face earns its download.
 
 Fluid scale via `clamp()` in `tokens.css`: `--fs-display-xl` down to `--fs-label`.
@@ -93,7 +145,7 @@ Fluid scale via `clamp()` in `tokens.css`: `--fs-display-xl` down to `--fs-label
 ### Layout
 
 One container (`--w-content: 1240px`) and one gutter. Every section shares it; the chapter
-rail sits outside it and only appears at ≥1360px, where there is margin to hold it.
+rail sits outside it and only appears at â‰¥1360px, where there is margin to hold it.
 
 ## 5. Motion
 
@@ -228,6 +280,47 @@ A slide is exactly one stage tall and the figure takes whatever height is left, 
 height can push the stats, the tech row and the repo link off it. The registry follows whichever
 slide is on the stage, from the intersection observer that already tracked the active project.
 
+### The handover
+
+A chapter does not scroll in after the one before it: that one is held at the top of the viewport
+while this one rises over it as an opaque sheet, tilted a couple of degrees and straightening as
+it takes the screen. Two seams do this, and they lead from opposite corners â€” 02 into 03 is tilted
+one way, 03 into 04 the other â€” so the page never hands over twice the same way.
+
+The hold is the same shape as the services beat: a sticky stage inside a wrapper with one screen
+more height than the stage needs. Where that height comes from differs by chapter and is the only
+per-seam difference in the layout: `#gateway` gives it with a `::after` tail, and `#services`
+inside the pinned wrapper the beat already sizes. Either way the arriving chapter is pulled up by
+exactly that hold (`margin-top: calc(-100svh - â€¦)`), so its top edge sits at the content edge of the
+chapter it covers and starts rising over it the moment the hold starts. Both values cancel in the
+document height.
+
+It has to be height, not padding: a sticky box is given no travel room by its parent's padding in
+Chrome, and the stage simply scrolls past. Measured, not assumed.
+
+The chapter being covered fades out under the sheet -- the whole chapter, not just its pinned stage,
+because the registry panel sits beside the stage and was showing through on its own. The fade is
+squeezed into the last sliver of the rise, where the only part of the old page still on screen is
+the strip above the sheet's edge: the hand-over should read as pages stacking, not as a dissolve.
+It is also what makes the cover safe to retire at landing.
+
+The tilt is written as `--sheet-tilt` and read off layout (`offsetTop`), never off the sheet's own
+rect, which is the thing being tilted. `refreshInit` neutralises it for the measurement and the
+scroll callback writes it back immediately after: a tilted rect would land in every trigger
+measured below it.
+
+Two consequences worth knowing. A tilted ancestor breaks line measurement, so `splitLines` groups
+words against the word before them rather than against the first word of the line â€” otherwise every
+word on a tilted line measures a few pixels lower than the last and becomes its own line. And a
+chapter is only rotated while it is arriving: once it is flat it carries `data-flat`, which drops
+the transform and hands the frames back to whatever is pinned inside it.
+
+Chapter 04 is a panel, not a column of content: one screen tall, its copy and its plot sharing the
+screen, because a handover has to land on a page rather than on a fragment. Its padding comes down
+and the plot gives way â€” a square figure, so its height is the chapter's â€” down to a floor at short
+viewports, where the copy wraps onto more lines than the screen has room for and the panel is
+allowed a few percent of overrun.
+
 ### One owner per transform
 
 An element gets its transform from one mechanism only. A scrubbed element must not also carry
@@ -260,9 +353,25 @@ on a boundary, and `aria-hidden` because it repeats the heading already in the d
 Project diagrams are Excalidraw scenes exported by hand to PNG and shown through a `<dialog>`
 lightbox (zoom, pan, keyboard). See `docs/diagrams/README.md`.
 
+An export is 1460â€“1687px wide drawn in a ~680px card, and as a PNG it is 78â€“332KB of bytes the
+card cannot use at that size. `pnpm images` writes each one at half and at full width in AVIF and
+WebP â€” 10â€“56KB per raster at a PSNR the eye cannot tell from the export â€” and `Services.tsx`
+lists them through `<picture>`/`srcset`, so the browser takes the first format it decodes and the
+rung its own density asks for. The PNG stays as the last-resort `src` for a browser that decodes
+neither format, which is the only way it is ever fetched.
+
 The pixel size travels with the source in `Services.tsx`, and the `<img>` carries it as
 `width`/`height`. A lazy raster with no intrinsic size contributes no height until it loads, and
 the ~750px it then adds shifts every chapter below it out from under the reader.
+
+Lazy loading alone is not enough for these. Below 1024px the projects are one vertical list and
+the browser's own heuristics start each raster about a viewport out, but at 1024px and up they live
+in a track carried sideways by a transform, and the loader measures what is near the viewport in
+*transformed* coordinates: a slide two stages to the right is not near anything, so its raster was
+still arriving while the reader looked at the frame. The chapter's figures are warmed a viewport
+early instead (`warmImage`, `useWarmFigures`), as a low-priority preload carrying the same
+`srcset`/`sizes` the markup does, so the warm and the `<img>` resolve to the same URL and the
+second one is a cache hit. Hovering a figure warms the full rung the viewer will ask for.
 
 Inline SVG was tried and removed: the rasters are what Excalidraw actually produces, and the
 hand-mirrored SVG twin drifted from the scene.
@@ -278,7 +387,7 @@ hand-mirrored SVG twin drifted from the scene.
 ## 8. Known gaps
 
 - `public/diagrams/*.png` were exported before the code corrections landed, so they still
-  show `Stripe`, `MassTransit` and `Serilog → Seq/Jaeger`. Deliberately left as is.
+  show `Stripe`, `MassTransit` and `Serilog â†’ Seq/Jaeger`. Deliberately left as is.
 - No automated tests and no CI beyond the Cloudflare build.
 - Content is English-only, in one file; there is no i18n layer.
 - Lighthouse and mobile passes have not been re-run since the redesign.

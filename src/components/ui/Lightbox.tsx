@@ -2,11 +2,29 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface LightboxProps {
   open: boolean;
-  src: string;
-  alt: string;
+  /** Absent while closed: with no `src` the element holds no box and asks for nothing. */
+  figure: LightboxFigure | null;
   /** The card figure that opened it, in viewport coordinates. */
   from?: DOMRect | null;
   onClose: () => void;
+}
+
+export interface LightboxFigure {
+  /** The raster shown when the browser decodes none of `sources`. */
+  src: string;
+  /** Format ladder, most efficient first, exactly as the card carries it. */
+  sources?: LightboxSource[];
+  alt: string;
+  /** The raster's real pixel size: it reserves the box before the bytes land,
+   *  which is what the flip has to measure. */
+  width: number;
+  height: number;
+}
+
+export interface LightboxSource {
+  type: string;
+  /** The `srcset` attribute as written in markup: one URL or a descriptor list. */
+  srcSet: string;
 }
 
 const MIN = 0.5;
@@ -21,7 +39,7 @@ const clamp = (v: number) => Math.min(MAX, Math.max(MIN, Math.round(v * 100) / 1
  * hatch. Built on <dialog> so focus trapping, ::backdrop and Esc come from the
  * platform instead of being re-implemented.
  */
-const Lightbox = ({ open, src, alt, from = null, onClose }: LightboxProps) => {
+const Lightbox = ({ open, figure, from = null, onClose }: LightboxProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [scale, setScale] = useState(1);
   const [pos, setPos] = useState({ x: 0, y: 0 });
@@ -138,13 +156,13 @@ const Lightbox = ({ open, src, alt, from = null, onClose }: LightboxProps) => {
       ref={dialogRef}
       className="lightbox"
       onClose={onClose}
-      aria-label={alt}
+      aria-label={figure?.alt ?? ''}
       onClick={(e) => {
         if (e.target === dialogRef.current) onClose();
       }}
     >
       <div className="lightbox__bar">
-        <span className="label">{alt}</span>
+        <span className="label">{figure?.alt ?? ''}</span>
         <div className="lightbox__tools">
           <button type="button" onClick={() => zoom(-STEP)} aria-label="Zoom out">
             −
@@ -169,12 +187,19 @@ const Lightbox = ({ open, src, alt, from = null, onClose }: LightboxProps) => {
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
       >
-        <img
-          src={src || undefined}
-          alt={alt}
-          draggable={false}
-          style={{ transform: `translate(${pos.x}px, ${pos.y}px) scale(${scale})` }}
-        />
+        <picture>
+          {figure?.sources?.map((source) => (
+            <source key={source.type} type={source.type} srcSet={source.srcSet} />
+          ))}
+          <img
+            src={figure?.src || undefined}
+            width={figure?.width}
+            height={figure?.height}
+            alt={figure?.alt ?? ''}
+            draggable={false}
+            style={{ transform: `translate(${pos.x}px, ${pos.y}px) scale(${scale})` }}
+          />
+        </picture>
       </div>
     </dialog>
   );

@@ -122,6 +122,15 @@ const connect = async (wsUrl) => {
   return { send, once, evaluate, close: () => ws.close() };
 };
 
+// Emulated media is a whole list, not a patch: every call replaces the last one,
+// so the features this script emulates are kept here and merged. Setting the
+// skin once erased the reduced-motion pass and quietly turned its motion back on.
+let emulated = [];
+const emulate = async (cdp, feature) => {
+  emulated = [...emulated.filter((f) => f.name !== feature.name), feature];
+  await cdp.send('Emulation.setEmulatedMedia', { features: emulated });
+};
+
 const load = async (cdp, width, height) => {
   await cdp.send('Emulation.setDeviceMetricsOverride', {
     width,
@@ -136,8 +145,7 @@ const load = async (cdp, width, height) => {
   await sleep(2400);
 };
 
-const shot = async (cdp, name) => {
-  const { data } = await cdp.send('Page.captureScreenshot', {
+const shot = async (cdp, name) => {  const { data } = await cdp.send('Page.captureScreenshot', {
     format: 'png',
     captureBeyondViewport: false,
     fromSurface: true,
@@ -191,6 +199,33 @@ for (const [i, img] of firstPaint.diagrams.entries()) {
     `boxHeight ${img.boxHeight}, raster ${img.loaded ? 'decoded' : 'not decoded yet'}`,
   );
 }
+
+// The sky is a live layer behind everything, so it has to be two things at once:
+// painting, and out of the way. Two samples a few frames apart must differ â€”
+// every star twinkles â€” and the layer must take no pointer events, or the page
+// under it stops being clickable.
+const skyStrip = `(() => {
+  const c = document.querySelector('.starfield');
+  if (!c) return null;
+  const { data } = c.getContext('2d').getImageData(0, 0, c.width, Math.min(240, c.height));
+  let sum = 0;
+  for (let i = 0; i < data.length; i += 4) sum += data[i] + data[i + 1] + data[i + 2] + data[i + 3];
+  return {
+    sum,
+    pointer: getComputedStyle(c).pointerEvents,
+    onTop: String(document.elementFromPoint(300, 300)?.className ?? 'none').includes('starfield'),
+  };
+})()`;
+const skyA = await cdp.evaluate(skyStrip);
+await sleep(320);
+const skyB = await cdp.evaluate(skyStrip);
+check(
+  'the sky is alive behind the page, and takes no clicks',
+  skyA !== null && skyB !== null && skyA.sum !== skyB.sum && skyA.pointer === 'none' && !skyA.onTop,
+  skyA === null
+    ? 'no starfield layer'
+    : `two frames ${skyA.sum === skyB.sum ? 'identical' : 'differ'}, pointer-events ${skyA.pointer}, on top ${skyA.onTop}`,
+);
 
 await shot(cdp, 'a-hero-rest');
 
@@ -312,10 +347,19 @@ const scrubbed = await cdp.evaluate(`(async () => {
     const m = getComputedStyle(el).transform;
     return m === 'none' ? 0 : +m.split(', ').pop().replace(')', '');
   };
+  // Where the element sits in the document. Read with the page at its top: a
+  // sticky box reports where it is being *held*, not where it lives, and both
+  // rect.top + scrollY and offsetTop carry that displacement with them â€”
+  // measured from the middle of a hold, the walk below starts past the element
+  // and reads every scrub as "does not move". Only the transits need to bracket
+  // the element, so the pixel of sheet tilt left at the top of the page is
+  // harmless.
   const out = [];
   for (const el of document.querySelectorAll(selector)) {
+    window.scrollTo(0, 0);
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     const box = el.getBoundingClientRect();
-    const top = box.top + window.scrollY;
+    const top = box.top;
     const from = Math.max(0, top - window.innerHeight);
     const to = top + box.height;
     // Sampled across the whole transit rather than at its two ends: the last
@@ -521,6 +565,73 @@ check(
     : `${arrivals.figures.length} figures, wiped open and settled`,
 );
 
+// The handovers: a chapter does not scroll in after the one before it â€” that one
+// is held at the top of the viewport while this one rises over it as a tilted
+// sheet that has to be flat by the time it has taken the screen. Read the way a
+// reader meets it, at four points of the rise, once per seam.
+const SEAMS = [
+  { sheet: '#services', held: '.gateway__stage' },
+  { sheet: '#anomaly', held: '.services__stage' },
+];
+
+for (const seam of SEAMS) {
+  const handover = await cdp.evaluate(`(async () => {
+    document.documentElement.style.scrollBehavior = 'auto';
+    const stage = document.querySelector('${seam.held}');
+    const sheet = document.querySelector('${seam.sheet}');
+    if (!stage || !sheet) return null;
+    // Measured untilted: a rotated box reports a bounding rectangle taller and
+    // wider than itself, and the walk below would start that much early.
+    sheet.style.setProperty('--sheet-tilt', '0deg');
+    const stageAtRest = getComputedStyle(stage).top;
+    const start = sheet.getBoundingClientRect().top + window.scrollY - window.innerHeight;
+    const samples = [];
+    for (const f of [0.15, 0.45, 0.75, 1]) {
+      window.scrollTo(0, Math.round(start + window.innerHeight * f));
+      await new Promise((r) => setTimeout(r, 420));
+      samples.push({
+        stageTop: Math.round(stage.getBoundingClientRect().top),
+        tilt: parseFloat(getComputedStyle(sheet).getPropertyValue('--sheet-tilt')) || 0,
+        arrived: Math.round(sheet.getBoundingClientRect().top),
+      });
+    }
+    return { samples, stageAtRest, flat: sheet.dataset.flat === 'true' };
+  })()`, true);
+
+  const tops = handover ? handover.samples.map((s) => s.stageTop) : [];
+  const spread = tops.length ? Math.max(...tops) - Math.min(...tops) : 999;
+  const landed = handover ? handover.samples[handover.samples.length - 1] : null;
+  check(
+    `${seam.sheet.slice(1)} rises over a held chapter and lands flat`,
+    // "Held" is the whole claim: a stage that was scrolling would move a whole
+    // viewport across these four samples, and one of them is deliberately lifted
+    // by the services dwell, so the number itself is not required to be zero.
+    handover !== null &&
+      spread <= 4 &&
+      landed.arrived <= 8 &&
+      landed.tilt === 0 &&
+      handover.flat,
+    handover === null
+      ? 'no hold or no sheet in the page'
+      : `held at ${tops.join('/')} against its own ${handover.stageAtRest}, arrived at ${landed.arrived}px, tilted ${landed.tilt}deg, flat ${handover.flat}`,
+  );
+}
+
+// A panel is one screen, so the chapter the handover delivers is a page rather
+// than a fragment. Some overrun is allowed at short viewports, where the copy
+// wraps onto more lines than the screen has room for.
+const panel = await cdp.evaluate(`(() => {
+  const el = document.querySelector('#anomaly');
+  if (!el) return null;
+  el.style.setProperty('--sheet-tilt', '0deg');
+  return { height: Math.round(el.getBoundingClientRect().height), vh: window.innerHeight };
+})()`);
+check(
+  'chapter 04 is one screen',
+  panel !== null && panel.height >= panel.vh * 0.98 && panel.height <= panel.vh * 1.1,
+  panel === null ? 'no panel' : `${panel.height}px in a ${panel.vh}px viewport`,
+);
+
 // The services beat: the stage must hold still while the projects travel, the
 // slides must fit the viewport, and the registry must follow whichever slide is
 // on screen. All three are read from the page as it stands.
@@ -546,7 +657,9 @@ const beat = await cdp.evaluate(`(async () => {
       at: i / 10,
       x: Number.parseFloat(track.style.getPropertyValue('--services-x')) || 0,
       stageTop: Math.round(stage.getBoundingClientRect().top),
-      opacity: Number.parseFloat(stage.style.opacity || '1'),
+      // Computed, not inline: the dim is written as a custom property now, so the
+      // inline style carries no opacity at all.
+      opacity: Number.parseFloat(getComputedStyle(stage).opacity || '1'),
       lifted: (stage.style.transform || '').includes('translate3d'),
     });
   }
@@ -647,6 +760,42 @@ check(
     beat.tech[0].length > 0 &&
     beat.tech[2] === beat.tech[3],
   beat === null ? 'stage missing' : `${beat.tech[0]} -> ${beat.tech[3]}, last frame matches: ${beat.tech[2] === beat.tech[3]}`,
+);
+
+// The figures are carried sideways on the pinned stage, which is a place the
+// browser's lazy loader cannot see: at rest, two of the three slides sit a whole
+// stage to the right, off the map it measures, so their rasters landed while the
+// reader was already looking at the frame. `useWarmFigures` asks for them a
+// viewport early instead, and this is the invariant that matters for that: by the
+// time the stage is under the reader, every raster â€” the hidden two included â€” is
+// decoded, in the modern format, at a size a card can use.
+const readFigures = () =>
+  cdp.evaluate(`(() => {
+    return [...document.querySelectorAll('.project__diagram img')].map((img) => {
+      const entry = performance.getEntriesByName(img.currentSrc).pop();
+      return {
+        src: img.currentSrc ? img.currentSrc.split('/').pop() : '',
+        decoded: img.complete && img.naturalWidth > 0,
+        bytes: entry ? entry.encodedBodySize : -1,
+      };
+    });
+  })()`);
+
+let figures = await readFigures();
+for (let i = 0; i < 20 && figures.some((f) => !f.decoded); i += 1) {
+  await sleep(100);
+  figures = await readFigures();
+}
+check(
+  'every figure is decoded, small, and modern before its slide arrives',
+  figures.length > 0 &&
+    figures.every((f) => f.decoded && f.src.endsWith('.avif') && f.bytes > 0 && f.bytes <= 64 * 1024),
+  figures
+    .map(
+      (f) =>
+        `${f.src || 'no src'} ${f.bytes < 0 ? 'unmeasured' : `${Math.round(f.bytes / 1024)}KB`} ${f.decoded ? 'decoded' : 'pending'}`,
+    )
+    .join(', '),
 );
 
 check(
@@ -923,7 +1072,7 @@ const heroText = `(() => {
 // Typing is only visible while it happens, so poll for a frame where the
 // visible copy is shorter than the sentence it belongs to.
 let midType = false;
-for (let i = 0; i < 45 && !midType; i += 1) {
+for (let i = 0; i < 160 && !midType; i += 1) {
   const pair = await cdp.evaluate(`(() => {
     const claim = document.querySelector('.hero__claim');
     const shown = claim.querySelector('span[aria-hidden="true"]');
@@ -1095,9 +1244,7 @@ await shot(cdp, 'f-mobile-head');
 /* ---------------------------------------------------------- reduced motion */
 
 console.log('reduced motion 1500x900');
-await cdp.send('Emulation.setEmulatedMedia', {
-  features: [{ name: 'prefers-reduced-motion', value: 'reduce' }],
-});
+await emulate(cdp, { name: 'prefers-reduced-motion', value: 'reduce' });
 await load(cdp, 1500, 900);
 
 const calm = await cdp.evaluate(`(async () => {
@@ -1130,8 +1277,19 @@ check(
   `hero opacity ${calm.shellOpacity}, hero transform ${calm.shellTransform}, title transform ${calm.titleTransform}, seam ${calm.seam}, skew ${calm.skew || 'unset'}, scrolled to ${calm.y}`,
 );
 
-await cdp.send('Emulation.setEmulatedMedia', { features: [] });
+// The sky under reduced motion is one painted frame, not a loop that happens to
+// be slow: the same strip has to read identically after a wait.
+const stillA = await cdp.evaluate(skyStrip);
+await sleep(400);
+const stillB = await cdp.evaluate(skyStrip);
+check(
+  'the sky is a still, not a loop, under reduced motion',
+  stillA !== null && stillB !== null && stillA.sum === stillB.sum && stillA.sum > 0,
+  stillA === null ? 'no starfield layer' : `two frames ${stillA.sum === stillB.sum ? 'identical' : 'differ'}, mass ${stillA.sum}`,
+);
 
+emulated = [];
+await cdp.send('Emulation.setEmulatedMedia', { features: [] });
 cdp.close();
 cleanup();
 

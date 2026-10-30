@@ -66,14 +66,18 @@ export const splitLines = (el: HTMLElement, mode: SplitMode): (() => void) => {
   if (words.length === 0) return restore;
 
   const groups: HTMLElement[][] = [];
-  let top: number | null = null;
+  // Each word is compared with the one before it, not with the first word of the
+  // line it is on. A tilted ancestor — the arriving chapters are turned a couple
+  // of degrees while they rise — puts every word of a line a little lower than
+  // the last, and measured against the line's own start that drift reads as one
+  // line per word. Against the neighbour it is a few pixels, while a real break
+  // is most of a line box.
+  let previous: { top: number; height: number } | null = null;
   for (const word of words) {
-    const next = word.getBoundingClientRect().top;
-    if (top === null || Math.abs(next - top) > 2) {
-      groups.push([]);
-      top = next;
-    }
+    const box = word.getBoundingClientRect();
+    if (previous === null || box.top - previous.top > previous.height / 2) groups.push([]);
     groups[groups.length - 1].push(word);
+    previous = { top: box.top, height: box.height };
   }
 
   el.textContent = '';

@@ -6,7 +6,7 @@ import ScorePlot from './ScorePlot';
 const ANOMALY = CHAPTERS[3];
 
 const Anomaly = () => (
-  <section id={ANOMALY.id} className="chapter">
+  <section id={ANOMALY.id} className="chapter chapter--sheet chapter--panel">
     <div className="shell">
       <ChapterHead id={ANOMALY.id} lead={RESEARCH.lead} />
 
